@@ -9,6 +9,7 @@ playerMaxHP(100).
 playerMaxArmor(100).
 enemyMaxHP(75).
 enemyStartNumber(10).
+inventoryCapacity(5).
 
 /* weaponStat(Weapon name, Damage, Accuracy in %, Mag size) */
 weaponStat(glock, 23, 84, 20).
