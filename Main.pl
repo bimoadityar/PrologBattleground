@@ -367,10 +367,90 @@ e :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , asserta(Player(Y,HP,Ar,Wp
 take(Object) :-
 
 
+/* Irena */ 
 drop(Object) :-
+    weaponInventory(Object,Y),
+    retract(weaponInventory(Object,Y)),
+    player(X,A,B,C,D),
+    asserta(weaponLoot(X,Object,Y)). /* weapon */
 
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchLi(A,Object,X), X==1,
+    player(P,Q,R,S,T),
+    asserta(armorLoot(P,Object)),
+    delLi(A,Object,D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(D,B,C)),
+    write('You drop the '), write(Object), write('.'). /*armor */
+
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchLi(B,Object,X), X ==1,
+    player(P,Q,R,S,T),
+    asserta(medLoot(P,Object)),
+    delLi(B,Object,D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(D,B,C)),
+    write('You drop the '),   write(Object), write('.'). /* MED */
+
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchLi(C,Object,X), X==1,
+    player(P,Q,R,S,T),
+    asserta(ammoLoot(P,Object)),
+    delLi(C,Object,D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(D,B,C)),
+    write('You drop the '), write(Object), write('.'). /* ammo */
+
+drop(Object) :- write('There is no such item in your inventory.').
+
+
+/* Irena */
+use (Object) :-
+    weaponInventory(Object,Y),
+    Y==0,
+    write(Object), write(' is equipped. '), write(' But the weapon is empty!'),
+    retract(weaponInventory(Object,Y)),
+    player(A,B,C,D,E),
+    retract(player(A,B,C,D,E)),
+    D is Object,
+    E is Y,
+    asserta(player(A,B,C,D,E)).
+
+use (Object) :-
+    weaponInventory(Object,Y),
+    Y\=0,
+    write(Object), write(' is reloaded with '), write(Y), write(' ammo. Ready for soup dinner!'),
+    retract(weaponInventory(Object,Y)),
+    player(A,B,C,D,E),
+    retract(player(A,B,C,D,E)),
+    D is Object,
+    E is Y,
+    asserta(player(A,B,C,D,E)).
 
 use(Object) :-
+    miscInventory(A,B,C),
+    searchLi(A,Object,X), X==1,
+    armorStat(Object,A),
+    modify_armor(A),
+    write('You used the '), write(Object), write('.'). /* armor */
+
+use(Object) :-
+    miscInventory(A,B,C),
+    searchLi(B,Object,X), X==1,
+    medStat(Object, Y),
+    modify_health(Y),
+    write('You used the medicine. ').
+
+use(Object) :-
+    miscInventory(A,B,C),
+    searchLi(C,Object,X), X==1,
+    write('You used the '), write(Object), write('. Increasing your ammo, ready to go!')
+    /* ammo */ /* BELUM NAMBAHIN AMMO, BARU CARI DARI LIST */
+
+use(Object) :- write('There is no such item in your inventory.').
 
 
 attack :-
