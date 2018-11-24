@@ -301,15 +301,23 @@ printMap(X) :-
 status :-
     /*player(Position, PlayerHP, PlayerArmor, Equiped weapon, Current ammo)*/
     player(X, PlayerHP, PlayerArmor, Weapon, Ammo),
-    print('Health: '), print(PlayerHP), nl,
-    print('Armor : '), print(PlayerArmor), nl,
-    print('Weapon: '), print(Weapon), nl,
+    print('Health   : '), print(PlayerHP), nl,
+    print('Armor    : '), print(PlayerArmor), nl,
+    print('Weapon   : '), print(Weapon), nl,
     InvStatus.
+
+printWeaponInv :-
+    \+ weaponInventory(_,_), !.
+printWeaponInv :-
+    forall(weaponInventory(Weapon,WeaponAmmo), (
+        print(Weapon), print('(Ammo: '), print(WeaponAmmo), print(')'), print(', '),
+    )), !.
 
 InvStatus :-
     /* weaponInventory(Weapon Name,Ammo), if we take an acquired weapon, just take the ammo */
     /* weaponInventory(Weapon, WAmmo),*/
     /* miscInventory([Armor Name], [Med Name], [Ammo Name]) */
+    \+ weaponInventory(_,_),
     miscInventory(Armor, Med, Ammo),
     Armor == [],
     Med == [],
@@ -319,6 +327,7 @@ InvStatus :-
 InvStatus :-
     miscInventory(Armor, Med, Ammo),
     print('You have:'), nl,
+    printWeaponInv,
     printList(Armor),
     printList(Med),
     printList(Ammo),
@@ -330,7 +339,6 @@ printList(L) :-
 printList([H|T]) :-
     print(H), print(', '), 
     printList(T).
-
 
 /* --------- move ----------------------------------------------------- */
 n :-
