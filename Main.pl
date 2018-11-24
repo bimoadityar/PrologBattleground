@@ -129,112 +129,112 @@ help :-
     nl, print('     |         X        | Inaccessible                                  |'),
     nl, print('      ==================================================================').
 
-printLook1(X):-
+printLook1(X) :-
     enemy(X,_,_,_), print('E'), !.
-printLook1(X):-
+printLook1(X) :-
     weaponLoot(X,_,_), print('W'), !.
-printLook1(X):-
+printLook1(X) :-
     armorLoot(X,_), print('A'), !.
-printLook1(X):-
+printLook1(X) :-
     medLoot(X,_), print('M'), !.
-printLook1(X):-
+printLook1(X) :-
     ammoLoot(X,_), print('O'), !.
-printLook1(X):-
+printLook1(X) :-
     deadzone(X), print('X'), !.
-printLook1(X):-
+printLook1(X) :-
     print('_').
 
-printLook(X):-
+printLook(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+WW+1,
     X == X0,
     printLook1(X),!.
-printLook(X):-
+printLook(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+1,
     X == X0,
     printLook1(X), nl,
     N is X+WW-1, printLook(N),!.
-printLook(X):-
+printLook(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW+1,
     X == X0,
     printLook1(X), nl,
     N is P-1, printLook(N), !.
-printLook(X):-
+printLook(X) :-
     printLook1(X), print(' '),
     N is X+1, printLook(N).
 
-printPosition(X):-
+printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW-1,
     X == X0,
     print(' at your northwest, '),!.
-printPosition(X):-
+printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW,
     X == X0,
     print(' at your north, '),!.
-printPosition(X):-
+printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW+1,
     X == X0,
     print(' at your northeast, '),!.
-printPosition(X):-
+printPosition(X) :-
     player(P,_,_,_,_),
     X0 is P-1,
     X == X0,
     print(' at your west, '),!.
-printPosition(X):-
+printPosition(X) :-
     player(P,_,_,_,_),
     X == P,
     print(' at your position, '),!.
-printPosition(X):-
+printPosition(X) :-
     player(P,_,_,_,_),
     X0 is P+1,
     X == X0,
     print(' at your east, '),!.
-printPosition(X):-
+printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+WW-1,
     X == X0,
     print(' at your southwest, '),!.
-printPosition(X):-
+printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+WW,
     X == X0,
     print(' at your south, '),!.
-printPosition(X):-
+printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+WW-1,
     X == X0,
     print(' at your southeast, '),!.
 
-look1(X,Found):-
+look1(X,Found) :-
     enemy(X,_,_,_), Found = 1,nl,
     print('an enemy'),
     printPosition(X),!.
-look1(X,Found):-
+look1(X,Found) :-
     weaponLoot(X,W,_), Found = 1,nl,
     print('a weapon: '), print(W),
     printPosition(X),!.
-look1(X,Found):-
+look1(X,Found) :-
     armorLoot(X,A), Found = 1,nl,
     print('an armor: '), print('A'),
     printPosition(X),!.
-look1(X,Found):-
+look1(X,Found) :-
     medLoot(X,M), Found = 1,nl,
     print('a medicine: '), print(M),
     printPosition(X),!.
-look1(X,Found):-
+look1(X,Found) :-
     ammoLoot(X,O), Found = 1,nl,
     print('an ammo for '), print(O),
     printPosition(X),!.
-look1(X,Found):-
+look1(X,Found) :-
     deadzone(X), Found = 1,nl,
     print('a deadzone '),
     printPosition(X),!.
-look1(X,Found):-
+look1(X,Found) :-
     Found = 0.
 
 /*Fitria*/
@@ -277,7 +277,7 @@ printMap(X) :-
     X == Max,
     deadzone(X), print('X').
 
-printMap(X):-
+printMap(X) :-
     worldWidth(WW),
     Xmod is X mod WW,
     Xmod == 0,
@@ -285,22 +285,51 @@ printMap(X):-
     nl, print('X'), !,
     N is X+1, printMap(N).
 
-printMap(X):-
+printMap(X) :-
     player(X,_,_,_,_), print('P'), !,
     N is X+1, printMap(N).
 
-printMap(X):-
+printMap(X) :-
     deadzone(X), print('X'), !,
     N is X+1, printMap(N).
 
-printMap(X):-
+printMap(X) :-
     print("-"),
     N is X+1, printMap(N).
 
+/*Fitria*/
 status :-
+    /*player(Position, PlayerHP, PlayerArmor, Equiped weapon, Current ammo)*/
+    player(X, PlayerHP, PlayerArmor, Weapon, Ammo),
+    print('Health: '), print(PlayerHP), nl,
+    print('Armor : '), print(PlayerArmor), nl,
+    print('Weapon: '), print(Weapon), nl,
+    InvStatus.
 
+InvStatus :-
+    /* weaponInventory(Weapon Name,Ammo), if we take an acquired weapon, just take the ammo */
+    /* weaponInventory(Weapon, WAmmo),*/
+    /* miscInventory([Armor Name], [Med Name], [Ammo Name]) */
+    miscInventory(Armor, Med, Ammo),
+    Armor == [],
+    Med == [],
+    Ammo == [],
+    print('Your inventory is empty!'), !.
 
+InvStatus :-
+    miscInventory(Armor, Med, Ammo),
+    print('You have:'), nl,
+    printList(Armor),
+    printList(Med),
+    printList(Ammo),
+    nl, print('in your inventory.').
 
+printList(L) :-
+    L == [], !.
+
+printList([H|T]) :-
+    print(H), print(', '), 
+    printList(T).
 
 
 /* --------- move ----------------------------------------------------- */
