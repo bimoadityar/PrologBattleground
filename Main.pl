@@ -93,44 +93,68 @@ quit :-
 
 
 /* --------- save & load ------------------------------------------------ */
+/*Fitria*/
 save(Filename) :-
 
+    open(Filename, write, Stream),
 
-load(Filename) :-
+    /*Initiate data to var*/
+    /*Player data*/
+    player(X, PlayerHP, PlayerArmor, EquipedWeapon, WeaponAmmo),
+    
+    write(Stream, X), write(Stream,'.'), nl(Stream),
+    write(Stream, PlayerHP), write(Stream,'.'), nl(Stream),
+    write(Stream, PlayerArmor), write(Stream,'.'), nl(Stream),
+    write(Stream, EquipedWeapon), write(Stream,'.'), nl(Stream),
+    write(Stream, WeaponAmmo), write(Stream,'.'), nl(Stream),
+
+    /*Inventory data*/
+    forall(weaponInventory(Weapon, InvWeaponAmmo),(
+        write(Stream, Weapon), write(Stream,'.'), nl(Stream),
+        write(Stream, InvWeaponAmmo), write(Stream,'.'), nl(Stream)
+    )),
+
+    write('Your current game state has been saved to '), write(Filename), write(' succesfully.'), nl,
+    
+    close(Stream).
+
+    /*Only save player state and inventory data*/
+
+loadGame(Filename) :-
 
 
 
 
 /* --------- info ----------------------------------------------------- */
 help :-
-    nl, print('      =================================================================='),
-    nl, print('     |     Here are available commands for you to survive the game      |'),
-    nl, print('     |==================================================================|'),
-    nl, print('     |start.            | Start the game.                               |'),
-    nl, print('     |help.             | Get some help to look over commands available.|'),
-    nl, print('     |quit.             | Farewell, quit the game.                      |'),
-    nl, print('     |look.             | Look around you.                              |'),
-    nl, print('     |map.              | Open map and see where on Earth are you.      |'),
-    nl, print('     |n. e. s. w.       | Move to the North, East, South, or West.      |'),
-    nl, print('     |take(Object).     | Pick up an object.                            |'),
-    nl, print('     |drop(Object).     | Drop an object.                               |'),
-    nl, print('     |use(Object).      | Use an object from your inventory.            |'),
-    nl, print('     |attack.           | Attack the enemy that crosses your path.      |'),
-    nl, print('     |status.           | Show your status.                             |'),
-    nl, print('     |save(FileName).   | Save your game.                               |'),
-    nl, print('     |load(FileName).   | Load your previously saved game.              |'),
-    nl, print('     |==================================================================|'),
-    nl, print('     |                   A useful legends of your map                   |'),
-    nl, print('     |==================================================================|'),
-    nl, print('     |         W        | Weapon                                        |'),
-    nl, print('     |         A        | Armor                                         |'),
-    nl, print('     |         M        | Medicine                                      |'),
-    nl, print('     |         O        | Ammo                                          |'),
-    nl, print('     |         P        | Player a.k.a YOU                              |'),
-    nl, print('     |         E        | Enemy                                         |'),
-    nl, print('     |         -        | Accessible                                    |'),
-    nl, print('     |         X        | Inaccessible                                  |'),
-    nl, print('      ==================================================================').
+    nl, print('      ==================================================================='),
+    nl, print('     |      Here are available commands for you to survive the game      |'),
+    nl, print('     |===================================================================|'),
+    nl, print('     |start.             | Start the game.                               |'),
+    nl, print('     |help.              | Get some help to look over commands available.|'),
+    nl, print('     |quit.              | Farewell, quit the game.                      |'),
+    nl, print('     |look.              | Look around you.                              |'),
+    nl, print('     |map.               | Open map and see where on Earth are you.      |'),
+    nl, print('     |n. e. s. w.        | Move to the North, East, South, or West.      |'),
+    nl, print('     |take(Object).      | Pick up an object.                            |'),
+    nl, print('     |drop(Object).      | Drop an object.                               |'),
+    nl, print('     |use(Object).       | Use an object from your inventory.            |'),
+    nl, print('     |attack.            | Attack the enemy that crosses your path.      |'),
+    nl, print('     |status.            | Show your status.                             |'),
+    nl, print('     |save(FileName).    | Save your game.                               |'),
+    nl, print('     |loadGame(FileName).| Load your previously saved game.              |'),
+    nl, print('     |===================================================================|'),
+    nl, print('     |                    A useful legends of your map                   |'),
+    nl, print('     |===================================================================|'),
+    nl, print('     |         W         | Weapon                                        |'),
+    nl, print('     |         A         | Armor                                         |'),
+    nl, print('     |         M         | Medicine                                      |'),
+    nl, print('     |         O         | Ammo                                          |'),
+    nl, print('     |         P         | Player a.k.a YOU                              |'),
+    nl, print('     |         E         | Enemy                                         |'),
+    nl, print('     |         -         | Accessible                                    |'),
+    nl, print('     |         X         | Inaccessible                                  |'),
+    nl, print('      ===================================================================').
 
 printLook1(X) :-
     enemy(X,_,_,_), print('E'), !.
@@ -313,7 +337,7 @@ printWeaponInv :-
     \+ weaponInventory(_,_), !.
 printWeaponInv :-
     forall(weaponInventory(Weapon,WeaponAmmo), (
-        print(Weapon), print('(Ammo: '), print(WeaponAmmo), print(')'), print(', '),
+        print(Weapon), print('(Ammo: '), print(WeaponAmmo), print(')'), print(', ')
     )), !.
 
 InvStatus :-
