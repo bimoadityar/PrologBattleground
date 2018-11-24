@@ -129,14 +129,173 @@ help :-
     nl, print('     |         X        | Inaccessible                                  |'),
     nl, print('      ==================================================================').
 
+printLook1(X):-
+    enemy(X,_,_,_), print('E'), !.
+printLook1(X):-
+    weaponLoot(X,_,_), print('W'), !.
+printLook1(X):-
+    armorLoot(X,_), print('A'), !.
+printLook1(X):-
+    medLoot(X,_), print('M'), !.
+printLook1(X):-
+    ammoLoot(X,_), print('O'), !.
+printLook1(X):-
+    deadzone(X), print('X'), !.
+printLook1(X):-
+    print('_').
+
+printLook(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P+WW+1,
+    X == X0,
+    printLook1(X),!.
+printLook(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P+1,
+    X == X0,
+    printLook1(X), nl,
+    N is X+WW-1, printLook(N),!.
+printLook(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P-WW+1,
+    X == X0,
+    printLook1(X), nl,
+    N is P-1, printLook(N), !.
+printLook(X):-
+    printLook1(X), print(' '),
+    N is X+1, printLook(N).
+
+printPosition(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P-WW-1,
+    X == X0,
+    print(' at your northwest, '),!.
+printPosition(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P-WW,
+    X == X0,
+    print(' at your north, '),!.
+printPosition(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P-WW+1,
+    X == X0,
+    print(' at your northeast, '),!.
+printPosition(X):-
+    player(P,_,_,_,_),
+    X0 is P-1,
+    X == X0,
+    print(' at your west, '),!.
+printPosition(X):-
+    player(P,_,_,_,_),
+    X == P,
+    print(' at your position, '),!.
+printPosition(X):-
+    player(P,_,_,_,_),
+    X0 is P+1,
+    X == X0,
+    print(' at your east, '),!.
+printPosition(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P+WW-1,
+    X == X0,
+    print(' at your southwest, '),!.
+printPosition(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P+WW,
+    X == X0,
+    print(' at your south, '),!.
+printPosition(X):-
+    worldWidth(WW), player(P,_,_,_,_),
+    X0 is P+WW-1,
+    X == X0,
+    print(' at your southeast, '),!.
+
+look1(X,Found):-
+    enemy(X,_,_,_), Found = 1,nl,
+    print('an enemy'),
+    printPosition(X),!.
+look1(X,Found):-
+    weaponLoot(X,W,_), Found = 1,nl,
+    print('a weapon: '), print(W),
+    printPosition(X),!.
+look1(X,Found):-
+    armorLoot(X,A), Found = 1,nl,
+    print('an armor: '), print('A'),
+    printPosition(X),!.
+look1(X,Found):-
+    medLoot(X,M), Found = 1,nl,
+    print('a medicine: '), print(M),
+    printPosition(X),!.
+look1(X,Found):-
+    ammoLoot(X,O), Found = 1,nl,
+    print('an ammo for '), print(O),
+    printPosition(X),!.
+look1(X,Found):-
+    deadzone(X), Found = 1,nl,
+    print('a deadzone '),
+    printPosition(X),!.
+look1(X,Found):-
+    Found = 0.
+
+/*Fitria*/
+look :-
+    worldWidth(WW),
+    player(X,_,_,_,_),
+    X0 is X-WW-1, X1 is X-WW, X2 is X-WW+1,
+    X3 is X-1, X4 is X, X5 is X+1,
+    X6 is X+WW-1, X7 is X+WW, X8 is X+WW+1,
+    print('You are now in Botwalski. You see '),
+    look1(X0,Found0), look1(X1,Found1), look1(X2,Found2),
+    look1(X3,Found3), look1(X4,Found4), look1(X5,Found5),
+    look1(X6,Found6), look1(X7,Found7), look1(X8,Found8),
+    Found0 == 0, Found1 == 0, Found2 == 0,
+    Found3 == 0, Found4 == 0, Found5 == 0,
+    Found6 == 0, Found7 == 0, Found8 == 0,
+    print('nothing on the ground.'), nl,
+    printLook(X0), !.
 
 look :-
+    worldWidth(WW),
+    player(X,_,_,_,_),
+    X0 is X-WW-1, X1 is X-WW, X2 is X-WW+1,
+    X3 is X-1, X4 is X, X5 is X+1,
+    X6 is X+WW-1, X7 is X+WW, X8 is X+WW+1,
+    print('You are now in Botwalski. You see '),
+    look1(X0,Found0), look1(X1,Found1), look1(X2,Found2),
+    look1(X3,Found3), look1(X4,Found4), look1(X5,Found5),
+    look1(X6,Found6), look1(X7,Found7), look1(X8,Found8),
+    nl, print('on the ground.'), nl,
+    printLook(X0).
 
-
-
+/*Fitria*/
 map :-
+    printMap(0);
 
+printMap(X) :-
+    worldWidth(WW),
+    MaX is WW*WW-1,
+    X == Max,
+    deadzone(X), print('X').
 
+printMap(X):-
+    worldWidth(WW),
+    Xmod is X mod WW,
+    Xmod == 0,
+    deadzone(X),
+    nl, print('X'), !,
+    N is X+1, printMap(N).
+
+printMap(X):-
+    player(X,_,_,_,_), print('P'), !,
+    N is X+1, printMap(N).
+
+printMap(X):-
+    deadzone(X), print('X'), !,
+    N is X+1, printMap(N).
+
+printMap(X):-
+    print("-"),
+    N is X+1, printMap(N).
 
 status :-
 
