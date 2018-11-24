@@ -455,3 +455,45 @@ use(Object) :- write('There is no such item in your inventory.').
 
 attack :-
 
+
+
+
+/* modify health */
+
+modify_health(X) :-
+    player(A,B,C,D,E), B<100, retract(player(A,B,C,D,E)), X is X + B, asserta(player(A,X,C,D,E)).
+
+modify_health(X) :-
+    player(A,B,C,D,E), B == 100, write('You are already on your prime condition!').
+
+modify_health(X) :-
+    player(A,B,C,D,E), B>100, retract(player(A,B,C,D,E)), X is 100, player(A,X,C,D,E),
+    asserta(player(A,X,C,D,E)).
+
+/* modify armor */
+modify_armor(X) :-
+    player(A,B,C,D,E), C<100, 
+    retract(player(A,B,C,D,E)), 
+    X is X+C, 
+    asserta(player(A,B,X,D,E)), 
+    write(' Increasing your armor!').
+
+modify_armor(X) :-
+     player(A,B,C,D,E), C=100, write('You are fully protected!').
+
+modify_armor(X) :-
+     player(A,B,C,D,E), C>100, 
+     retract(player(A,B,C,D,E)), 
+     X is 100, 
+     asserta(player(A,B,X,D,E)), 
+     write('You are fully protected!').
+
+/* Search List */
+searchLi([],_,0) :- !. /* Basis */
+searchLi([A|_], C, 1) :- C == A, !. /* Found */
+searchLi([A|B], C, X) :- C \== A, searchLi(B, C, X).
+
+/*Del X dari List */
+delLi([], _, []) :- !. /* basis */
+delLi([A|B], X, B):- X == A, !. /* found */
+delLi([A|B], X, [A|C]) :- X \== A, delInv(B,X,C).
