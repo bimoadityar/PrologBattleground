@@ -62,6 +62,8 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 :- dynamic(medLoot/2).
 /* ammoLoot(Position, Ammo name) */
 :- dynamic(ammoLoot/2).
+/* Number of weapons in inventory*/
+:- dynamic(weaponInInv/1).
 
 /* Number of moves already done by player */
 :- dynamic(moveCount/1).
@@ -78,7 +80,7 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 /* --------- init ----------------------------------------------------- */
 start :-
 /* Bimo */
-
+/* Bim, ntar buat inisialisasi jumlah weapon di inventori, yang weaponInInv */
 
 
 
@@ -342,19 +344,24 @@ printList([H|T]) :-
     printList(T).
 
 /* --------- move ----------------------------------------------------- */
-n :-
+n :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
+    retract(Player(X,HP,Ar,Wp,Am)),!.
+n :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW, asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
 
 
-s :-
+s :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
+    retract(Player(X,HP,Ar,Wp,Am)),!.
+s :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW, asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
 
 
-w :-
+w :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-1 , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
+    retract(Player(X,HP,Ar,Wp,Am)),!.
+w :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-1, asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
 
 
-e :-
-
-
-
+e :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
+    retract(Player(X,HP,Ar,Wp,Am)),!.
+e :- Player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
 
 /* --------- other action ---------------------------------------------- */
 take(Object) :-
