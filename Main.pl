@@ -613,7 +613,7 @@ use(Object) :-
     miscInventory(L1,L2,L3), searchList(L2, Object), !, player(A,B,C,D,E), !, print('You use the '), print(Object), print('.'), nl, deleteList(L2,Object,L4), retract(miscInventory(L1,L2,L3)), asserta(miscInventory(L1,L4,L3)), medStat(Object,AD), B1 is B+AD, playerMaxHP(Q), min(B1,Q,F), retract(player(_,_,_,_,_)), asserta(player(A,F,C,D,E)), !.
 
 use(Object) :-
-    player(A,B,C,Object,_), miscInventory(L1,L2,L3), searchList(L3,Object), !, print('You use the '), print(Object), print(' ammo.'), nl, deleteList(L3,Object,L4), retract(miscInventory(L1,L2,L4)), asserta(miscInventory(L1,L2,L4)), weaponStat(Object,_,_,AD), retract(player(_,_,_,_,_)), asserta(player(A,B,C,Object,AD)), !.
+    player(A,B,C,Object,_), miscInventory(L1,L2,L3), searchList(L3,Object), !, print('You use the '), print(Object), print(' ammo.'), nl, deleteList(L3,Object,L4), retract(miscInventory(L1,L2,L3)), asserta(miscInventory(L1,L2,L4)), weaponStat(Object,_,_,AD), retract(player(_,_,_,_,_)), asserta(player(A,B,C,Object,AD)), !.
 
 use(Object) :-
     print('You failed to use that '), print(Object), print(' whatsoever.'), nl, !.
