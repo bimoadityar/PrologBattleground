@@ -69,6 +69,8 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 /* Is coordinate X in deadzone */
 :- dynamic(deadzone/1).
 
+:- dynamic(border/1).
+
 :- dynamic(programStart/0).
 
 /* Added Rule */
@@ -158,6 +160,9 @@ wipeData :-
 addDeadzone(K) :-
     worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(deadzone(A1)), twoToOneDim(K1,X,A2), asserta(deadzone(A2)), twoToOneDim(X,K,A3), asserta(deadzone(A3)), twoToOneDim(X,K1,A4), asserta(deadzone(A4)))).
 
+addBorder(K) :-
+    worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(border(A1)), twoToOneDim(K1,X,A2), asserta(border(A2)), twoToOneDim(X,K,A3), asserta(border(A3)), twoToOneDim(X,K1,A4), asserta(border(A4)))).
+
 startPlayer(L,L1) :-
      takeRandElmt(L,L1,P), playerMaxHP(MH), playerMaxArmor(MA), asserta(player(P,MH,MA,none,0)), asserta(miscInventory([],[],[])), asserta(moveCount(0)).
 
@@ -182,7 +187,7 @@ startAmmo(L,[A|B],L1) :-
     takeRandElmt(L,L2,X), asserta(ammoLoot(X,A)), startAmmo(L2,B,L1), !.
 
 startPosition :-
-    addDeadzone(0), worldWidth(WW), WB is WW*WW-1, findall(X, (between(0,WB,X), \+deadzone(X)), L), startPlayer(L,L1), enemyStartNumber(ES), startEnemy(L1,ES,L2), startWeaponList(WL), startWeapon(L2,WL,L3), startArmorList(AL), startArmor(L3,AL,L4), startMedList(ML), startMed(L4,ML,L5), startAmmoList(AML), startAmmo(L5,AML,_).
+    addBorder(0), addDeadzone(1), worldWidth(WW), WB is WW*WW-1, findall(X, (between(0,WB,X), \+deadzone(X)), L), startPlayer(L,L1), enemyStartNumber(ES), startEnemy(L1,ES,L2), startWeaponList(WL), startWeapon(L2,WL,L3), startArmorList(AL), startArmor(L3,AL,L4), startMedList(ML), startMed(L4,ML,L5), startAmmoList(AML), startAmmo(L5,AML,_).
 
 start :-
 /* Bimo */
@@ -202,11 +207,6 @@ quit :-
     print('Farewell, it was a good game!'),
     halt.
 /* 
-
-
-
-
-
 /* --------- save & load ------------------------------------------------ */
 /*Fitria*/
 
@@ -277,6 +277,8 @@ help :-
     nl, print('     |         X         | Inaccessible                                  |'),
     nl, print('      ===================================================================').
 
+printLook1(X) :-
+    border(X), print('#'), !.
 printLook1(X) :-
     enemy(X,_,_,_), print('E'), !.
 printLook1(X) :-
@@ -361,6 +363,10 @@ printPosition(X) :-
     print(' at your southeast '),!.
 
 look1(X,Found) :-
+    border(X), Found = 1,nl,
+    print('a cliff'),
+    printPosition(X),!.
+look1(X,Found) :-
     enemy(X,_,_,_), Found = 1,nl,
     print('an enemy'),
     printPosition(X),!.
@@ -414,6 +420,7 @@ look :-
     X0 is X-WW-1,
     nl, printLook(X0).
 
+
 /*Fitria*/
 map :-
     \+programStart, print('Program hasn\'t been started yet.'), nl, !.
@@ -425,29 +432,20 @@ printMap(X) :-
     worldWidth(WW),
     MaX is WW*WW-1,
     X == MaX,
-    player(X,_,_,_,_), print('P'), !.
-
-printMap(X) :-
-    worldWidth(WW),
-    MaX is WW*WW-1,
-    X == MaX,
-    deadzone(X), print('X'), !.
+    border(X), print('#'), !.
 
 printMap(X) :-
     worldWidth(WW),
     Xmod is X mod WW,
     Xmod == 0,
-    player(X,_,_,_,_),
-    nl, print('P'), !,
+    border(X),
+    nl, print('#'), !,
     N is X+1, printMap(N).
 
 printMap(X) :-
-    worldWidth(WW),
-    Xmod is X mod WW,
-    Xmod == 0,
-    deadzone(X),
-    nl, print('X'), !,
+    border(X), print('#'), !,
     N is X+1, printMap(N).
+
 
 printMap(X) :-
     player(X,_,_,_,_), print('P'), !,
@@ -501,10 +499,6 @@ invStatus :-
     printList(Med),
     printList(Ammo),
     print('\n\tand determination in your inventory.').
-
-
-
-    
 
 /* --------- move ----------------------------------------------------- */
 addMoveCount :-
