@@ -544,10 +544,11 @@ invStatus :-
     printWeaponInv,
     printList(Armor),
     printList(Med),
-    miscInventory(_,_,[]), !, 
+    Ammo == [], !, 
     print('\n\tand determination in your inventory.'), !.
 
 invStatus :-
+    miscInventory(Armor, Med, Ammo),
     print('ammo of '), printList(Ammo),
     print('\n\tand determination in your inventory.'), !.
 
