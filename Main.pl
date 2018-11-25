@@ -635,3 +635,43 @@ attack :-
 
 attack :-
     player(X,A,B,C,D), enemy(X,E,F,G), print(' The shot hits the non-moving enemy. It looks painful.'), nl, retract(player(X,A,B,C,D)), D1 is D-1, asserta(player(X,A,B,C,D1)), weaponStat(C,DG,_,_), E1 is E-DG, retract(enemy(X,_,_,_)), asserta(enemy(X,E1,F,G)), !.
+
+drop(Object) :-
+    weaponInventory(Object,Y),
+    retract(weaponInventory(Object,Y)),
+    weaponInInv(E), F is E-1, retractall(weaponInInv(_)), asserta(weaponInInv(F)),
+    player(X,A,B,C,D),
+    asserta(weaponLoot(X,Object,Y)), 
+    print('You drop the '), write(Object), print('.'), !. /* weapon */
+ 
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchList(A, Object), !,
+    player(P,Q,R,S,T),
+    deleteList(A, Object, D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(D,B,C)),
+    asserta(armorLoot(P,Object)),
+    print('You drop the '), print(Object), print('.'), !. /*armor */
+ 
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchList(B,Object), !,
+    player(P,Q,R,S,T),
+    asserta(medLoot(P,Object)),
+    deleteList(B, Object, D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(A,D,C)),
+    print('You drop the '),   print(Object), print('.'), !. /* MED */
+ 
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchList(C, Object), !,
+    player(P,Q,R,S,T),
+    asserta(ammoLoot(P,Object)),
+    deleteList(C, Object, D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(A,B,D)),
+    print('You drop the '), print(Object), print('.'), !. /* ammo */
+ 
+drop(Object) :- print('There is no such item in your inventory.'), !.
