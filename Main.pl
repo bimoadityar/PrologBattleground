@@ -3,7 +3,7 @@
 
 worldWidth(15).
 /* deadzoneSpeed the number moves the player makes when the deadzone progress */
-deadzoneSpeed(5).
+deadzoneSpeed(30).
 deadzoneDamage(30).
 
 playerMaxHP(100).
@@ -94,6 +94,9 @@ printList([H|T]) :-
 
 min(A,B,C) :- A < B, C is A, !.
 min(_,B,C) :- C is B, !.
+
+max(A,B,C) :- A < B, C is B, !.
+max(A,_,C) :- C is A, !.
     
 
 /* Search List */
@@ -116,7 +119,7 @@ weaponInInv(A) :-
 oneToTwoDim(X,A,B) :- worldWidth(WW), B is X mod WW, A is (X-B)//WW, !.
 twoToOneDim(A,B,X) :- worldWidth(WW), X is A * WW + B, !.
 
-randomProb(X) :- random(0,100,Y), X < Y, !.
+randomProb(X) :- random(0,100,Y), Y < X, !.
 
 generateList(A,A,X) :- X = [], !.
 generateList(A,B,X) :- C is A+1, generateList(C,B,Y), X = [A|Y], !.
@@ -514,10 +517,16 @@ addMoveCount :-
 addMoveCount :- !.
 
 n :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
+n :-
     player(X,_,_,_,_), oneToTwoDim(X,A,_), A =:= 1, print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 n :- 
     addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X-WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+
+s :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
 
 s :-
     player(X,_,_,_,_), oneToTwoDim(X,A,_), worldWidth(WW), A =:= (WW-1), print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
@@ -526,10 +535,16 @@ s :-
     addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X+WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
 w :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
+w :-
     player(X,_,_,_,_), oneToTwoDim(X,_,B), B =:= 1 , print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 w :- 
     addMoveCount, player(X,A,B,C,D), Y is X-1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+
+e :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
 
 e :-
     player(X,_,_,_,_), oneToTwoDim(X,_,B), worldWidth(WW), B =:= (WW-1) , print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
@@ -606,6 +621,15 @@ use(Object) :-
 use(Object) :-
     print('You failed to use that '), print(Object), print(' whatsoever.'), nl, !.
 
+counterattack :- 
+    player(X,_,_,_,_), enemy(X,_,_,0), print('The enemy wants to counterattacks but unfortunately his gun ran out of ammo.'), nl, !.
+
+counterattack :- 
+    player(X,_,_,_,_), enemy(X,A,B,C), print('The enemy counterattacks to you with his '), print(B), print('.'), weaponStat(B,_,P,_), retract(enemy(X,A,B,C)), C1 is C-1, asserta(enemy(X,A,B,C1)), \+randomProb(P), !, print(' He missed.'), nl, !. 
+
+counterattack :-
+    player(X,A,B,C,D), enemy(X,_,F,_), print(' He surely doesn\'t miss. You take the shot.'), nl, weaponStat(F,DG,_,_), K1 is B-DG, K2 is max(K1,0), K3 is A+B-DG, K4 is min(K3,A), retract(player(_,_,_,_,_)), asserta(player(X,K4,K2,C,D)), !. 
+
 
 attack :-
     \+programStart, print('Program hasn\'t been started yet.'), nl, !.
@@ -620,7 +644,7 @@ attack :-
     player(_,_,_,_,0), print('You have no ammo.'), nl, checkDamageWin, !.
 
 attack :-
-    player(X,A,B,C,D), enemy(X,_,_,_), print('You take your shot.'), weaponStat(C,_,P,_), \+randomProb(P), !, print('You missed.'), nl, retract(player(_,_,_,_,_)), D1 is D-1, asserta(player(X,A,B,C,D1)), checkDamageWin, !.
+    player(X,A,B,C,D), enemy(X,_,_,_), print('You take your shot.'), weaponStat(C,_,P,_), retract(player(_,_,_,_,_)), D1 is D-1, asserta(player(X,A,B,C,D1)), \+randomProb(P), !, print(' You missed.'), nl,  counterattack, checkDamageWin, !.
 
 attack :-
-    player(X,A,B,C,D), enemy(X,E,F,G), print(' The shot hits the non-moving enemy. It looks painful.'), nl, retract(player(X,A,B,C,D)), D1 is D-1, asserta(player(X,A,B,C,D1)), weaponStat(C,DG,_,_), E1 is E-DG, retract(enemy(X,_,_,_)), asserta(enemy(X,E1,F,G)), !.
+    player(X,_,_,C,_), enemy(X,E,F,G), print(' The shot hits the enemy. It looks painful.'), nl, weaponStat(C,DG,_,_), E1 is E-DG, retract(enemy(X,_,_,_)), asserta(enemy(X,E1,F,G)), checkDamageWin, counterattack, checkDamageWin, !.
