@@ -254,7 +254,7 @@ quit :-
     print('Farewell, it was a good game!'),
     print('Botwalski Experience © KataBimoBebas'),nl,
     print('Created by : '), nl,
-    print('Bimo Aditya '), nl,
+    print('Bimo Adityarahman W '), nl,
     print('Irena Irmalasari '), nl,
     print('Nada Afra S '), nl,
     print('Fitria Budi A '), nl,
