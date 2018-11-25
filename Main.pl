@@ -10,6 +10,7 @@ playerMaxHP(100).
 playerMaxArmor(100).
 enemyMaxHP(75).
 enemyStartNumber(10).
+enemyFollowProb(30).
 inventoryCapacity(5).
 
 /* weaponStat(Weapon name, Damage, Accuracy in %, Mag size) */
@@ -97,7 +98,11 @@ min(_,B,C) :- C is B, !.
 
 max(A,B,C) :- A < B, C is B, !.
 max(A,_,C) :- C is A, !.
-    
+
+near(A,A,B) :- B is A, !.
+near(A,B,C) :- B > A, C is A+1, !.
+near(A,_,C) :- C is A-1, !.
+
 
 /* Search List */
 searchList([],_) :- !, fail.
@@ -523,8 +528,17 @@ invStatus :-
     print('\n\tand determination in your inventory.').
 
 /* --------- move ----------------------------------------------------- */
+enemyFollow(_) :-
+    enemyFollowProb(P), \+randomProb(P), !.
+
+enemyFollow(X) :-
+    enemy(X,A,B,C), player(Y,_,_,_,_), randomProb(50), oneToTwoDim(X,X1,X2), oneToTwoDim(Y,Y1,_), near(X1,Y1,D), twoToOneDim(D,X2,E), \+enemy(E,_,_,_), retract(enemy(X,_,_,_)),  asserta(enemy(E,A,B,C)), !.
+
+enemyFollow(X) :-
+    enemy(X,A,B,C), player(Y,_,_,_,_), oneToTwoDim(X,X1,X2), oneToTwoDim(Y,_,Y2), near(X2,Y2,D),  twoToOneDim(X1,D,E), \+enemy(E,_,_,_), retract(enemy(X,_,_,_)), asserta(enemy(E,A,B,C)), !.
+
 addMoveCount :-
-    moveCount(X), X1 is X+1, retract(moveCount(_)), asserta(moveCount(X1)), deadzoneSpeed(DS), X1 mod DS =:= 0, A is X1//DS, addDeadzone(A), !.
+    moveCount(X), X1 is X+1, retract(moveCount(_)), asserta(moveCount(X1)), deadzoneSpeed(DS), forall(enemy(Y,_,_,_), (enemyFollow(Y))), X1 mod DS =:= 0, A is X1//DS, addDeadzone(A).
 
 addMoveCount :- !.
 
@@ -667,14 +681,14 @@ drop(Object) :-
     weaponInventory(Object,Y),
     retract(weaponInventory(Object,Y)),
     weaponInInv(E), F is E-1, retractall(weaponInInv(_)), asserta(weaponInInv(F)),
-    player(X,A,B,C,D),
+    player(X,_,_,_,_),
     asserta(weaponLoot(X,Object,Y)), 
     print('You drop the '), write(Object), print('.'), !. /* weapon */
  
 drop(Object) :-
     miscInventory(A,B,C),
     searchList(A, Object), !,
-    player(P,Q,R,S,T),
+    player(P,_,_,_,_),
     deleteList(A, Object, D),
     retract(miscInventory(A,B,C)),
     asserta(miscInventory(D,B,C)),
@@ -684,7 +698,7 @@ drop(Object) :-
 drop(Object) :-
     miscInventory(A,B,C),
     searchList(B,Object), !,
-    player(P,Q,R,S,T),
+    player(P,_,_,_,_),
     asserta(medLoot(P,Object)),
     deleteList(B, Object, D),
     retract(miscInventory(A,B,C)),
@@ -694,11 +708,11 @@ drop(Object) :-
 drop(Object) :-
     miscInventory(A,B,C),
     searchList(C, Object), !,
-    player(P,Q,R,S,T),
+    player(P,_,_,_,_),
     asserta(ammoLoot(P,Object)),
     deleteList(C, Object, D),
     retract(miscInventory(A,B,C)),
     asserta(miscInventory(A,B,D)),
     print('You drop the '), print(Object), print('.'), !. /* ammo */
  
-drop(Object) :- print('There is no such item in your inventory.'), !.
+drop(_) :- print('There is no such item in your inventory.'), !.
