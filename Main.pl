@@ -130,8 +130,26 @@ takeRandElmt(L1,L2,X) :-
     listLength(L1,A), random(0,A,B), takeNthElmt(L1,B,L2,X), !.
 
 
-/* Command dalam spek */
+deadzoneDamagePlayer :- 
+    player(X,A,B,C,D), deadzone(X), deadzoneDamage(DD), A1 is A-DD, retract(player(_,_,_,_,_)), asserta(player(X,A1,B,C,D)), fail.
+deadzoneDamagePlayer :- player(_,A,_,_,_), A =< 0, retract(player(_,_,_,_,_)), !.
+deadzoneDamagePlayer :- !.
 
+deadzoneDamageEnemy :-
+    forall(enemy(X,A,B,C), (deadzone(X), deadzoneDamage(DD), A1 is A-DD, retract(enemy(X,A,B,C)), asserta(enemy(X,A1,B,C)))), fail.
+deadzoneDamageEnemy :- 
+    forall(enemy(X,A,B,C), (A =< 0, retract(enemy(X,A,B,C)))), !.
+deadzoneDamageEnemy :- !.
+
+checkWinCon  :- \+player(_,_,_,_,_), print('You are dead.'), nl, retract(programStart), !.
+checkWinCon :- \+ enemy(_,_,_,_), print('All enemy is slain. You win.'), nl, retract(programStart), !.
+checkWinCon :- !.
+
+checkDamageWin :- deadzoneDamagePlayer, deadzoneDamageEnemy, checkWinCon, !.
+checkDamageWin :- !.
+
+
+/* Command dalam spek */
 
 /* --------- init ----------------------------------------------------- */
 wipeData :-
@@ -495,50 +513,16 @@ addMoveCount :-
 addMoveCount :- !.
 
 n :- 
-    addMoveCount, player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), deadzoneDamage(Z), S is HP-Z, asserta(player(Y,S,Ar,Wp,Am)),
-    retract(player(X,HP,Ar,Wp,Am)),!.
-n :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(Y,HP,Ar,Wp,Am)).
+    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X-WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
 
 s :- 
-    addMoveCount, player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW , deadzone(Y), deadzoneDamage(Z), S is HP-Z, asserta(player(Y,S,Ar,Wp,Am)),
-    retract(player(X,HP,Ar,Wp,Am)),!.
-s :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
+    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X+WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
 
 w :- 
-    addMoveCount, player(X,HP,Ar,Wp,Am), Y is X-1 , deadzone(Y), deadzoneDamage(Z), S is HP-Z, asserta(player(Y,S,Ar,Wp,Am)),
-    retract(player(X,HP,Ar,Wp,Am)),!.
-w :- 
-    player(X,HP,Ar,Wp,Am), Y is X-1, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
+    addMoveCount, player(X,A,B,C,D), Y is X-1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
 
 e :- 
-    addMoveCount, player(X,HP,Ar,Wp,Am), Y is X+1 , deadzone(Y), deadzoneDamage(Z), S is HP-Z, asserta(player(Y,S,Ar,Wp,Am)),
-    retract(player(X,HP,Ar,Wp,Am)),!.
-e :- 
-    player(X,HP,Ar,Wp,Am), Y is X+1 , asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
-
-/* --------- other action ----------------------------------- */
-take(Object) :- player(X,HP,Ar,O,Z), weaponLoot(X, Object, Y), O==Object, retract(weapponLoot(X, Object,Y)), \+(weaponInventory(Object,_)),
-                B is Y+Z, asserta(player(X,HP,Ar,Object,B)), retract(player(X,HP,Ar,Object,Z)), print('You took the Ammo of '),
-                print(Object), print(', now the current Ammo is'), print(B),!.
-take(Object) :- player(X,_,_,_,_), weaponLoot(X, Object, Y), \+ (weaponInventory(Object,_)), retract(weapponLoot(X, Object,Y)), inInv(Z), inventoryCapacity(C), Z < C,
-                A is Z+1, asserta(inInv(A)), retract(inInv(Z)), asserta(weaponInventory(Object,Y)), print('You took the '),print(Object), !.
-take(Object) :- player(X,_,_,_,_), weaponLoot(X, Object, Y), weaponInventory(Object,Z),
-                B is Y+Z, asserta(weaponInventory(Object,B)), retract(weaponInventory(Object,Z)), print('You took the Ammo of '),
-                print(Object), print(', now the current Ammo is'), print(B),!.
-take(Object) :- inventoryCapacity(C), inv(Z), Z=:=C, print('Your inventory is full'),!. 
-
-take(Object) :- player(X,_,_,_,_), armorLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
-                konso(Object,[Ar],[Y]), asserta(miscInventory([Y],[Med],[Am])), retract(armorLoot(X,Object)),
-                retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),!.
-take(Object) :- player(X,_,_,_,_), medLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
-                konso(Object,[Med],[Y]), asserta(miscInventory([Ar],[Y],[Am])), retract(medLoot(X,Object)),
-                retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),!.
-take(Object) :- player(X,_,_,_,_), ammoLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
-                konso(Object,[Am],[Y]), asserta(miscInventory([Ar],[Med],[Y])), retract(armorLoot(X,Object)),
-                retract(miscInventory([Ar],[Med],[Am])),  print('You took the '), print(Object),!.          
-take(Object) :- print('Object not found.').
+    addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
