@@ -62,8 +62,6 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 :- dynamic(medLoot/2).
 /* ammoLoot(Position, Ammo name) */
 :- dynamic(ammoLoot/2).
-/* Number of weapons in inventory*/
-:- dynamic(weaponInInv/1).
 
 /* Number of moves already done by player */
 :- dynamic(moveCount/1).
@@ -82,6 +80,8 @@ searchLi([A|B], C, X) :- C \== A, searchLi(B, C, X).
 /*Konso List*/
 konso(Object,[L],[Y]) :- [Y] = [Object|L].
 
+weaponInInv(A) :-
+    findall(X, weaponInventory(X,_), L), listLength(L,A), !.
 
 
 oneToTwoDim(X,A,B) :- worldWidth(WW), B is X mod WW, A is (X-B)//WW, !.
