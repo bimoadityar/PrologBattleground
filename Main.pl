@@ -526,3 +526,32 @@ w :-
 
 e :- 
     addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    
+
+take(Object) :- 
+    player(X,HP,Ar,O,Z), weaponLoot(X, Object, Y), O==Object, retract(weapponLoot(X, Object,Y)),
+    B is Y+Z, asserta(player(X,HP,Ar,Object,B)), retract(player(X,HP,Ar,Object,Z)), print('You took the Ammo of '),
+    print(Object), print(', now the current Ammo is'), print(B), nl,!.
+take(Object) :- 
+    player(X,_,_,_,_), weaponLoot(X, Object, Y), \+(weaponInventory(Object,_)), weaponInInv(Z), inventoryCapacity(C), Z < C, retract(weapponLoot(X, Object,Y)),
+    asserta(weaponInventory(Object,Y)), print('You took the '),print(Object), nl, !.
+take(Object) :- 
+    player(X,_,_,_,_), weaponLoot(X, Object, Y), weaponInventory(O,Z), O==Object,
+    B is Y+Z, asserta(weaponInventory(Object,B)), retract(weaponInventory(Object,Z)), print('You took the Ammo of '),
+    print(Object), print(', now the current Ammo is'), print(B),nl,!.
+take(Object) :- 
+    miscInventory([Ar],[Med],[Am]), listLength([Ar],X), listLength([Med],Y), listLength([Am],Z), In is X+Y+Z, In=:=C, print('Your inventory is full'),nl,!. 
+take(Object) :- 
+    player(X,_,_,_,_), armorLoot(X, Object), miscInventory([Ar],[Med],[Am]), 
+    konso(Object,[Ar],[Y]), asserta(miscInventory([Y],[Med],[Am])), retract(armorLoot(X,Object)),
+    retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),nl,!.
+take(Object) :- 
+    player(X,_,_,_,_), medLoot(X, Object), miscInventory([Ar],[Med],[Am]), 
+    konso(Object,[Med],[Y]), asserta(miscInventory([Ar],[Y],[Am])), retract(medLoot(X,Object)),
+    retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),nl,!.
+take(Object) :- 
+    player(X,_,_,_,_), ammoLoot(X, Object), miscInventory([Ar],[Med],[Am]), 
+    konso(Object,[Am],[Y]), asserta(miscInventory([Ar],[Med],[Y])), retract(armorLoot(X,Object)),
+    retract(miscInventory([Ar],[Med],[Am])),  print('You took the '), print(Object),nl,!.          
+take(Object) :- 
+    print('Object not found.').
