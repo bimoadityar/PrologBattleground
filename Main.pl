@@ -141,6 +141,18 @@ takeRandElmt([],L2,X) :- L2 = [], X = 0, !.
 takeRandElmt(L1,L2,X) :-
     listLength(L1,A), random(0,A,B), takeNthElmt(L1,B,L2,X), !.
 
+/* terrain */
+terrain(A,B,C) :- twoToOneDim(A,B,X), border(X), print('to the '), print(C), print(' is the edge of island'), !.
+terrain(A,B,C) :- twoToOneDim(A,B,X), deadzone(X), print('to the '), print(C), print(' is a deadzone'), !.
+terrain(A,B,C) :- worldWidth(WW), Z is WW//2, A < Z, B < Z, print('to the '), print(C), print(' is a swamp'), !.
+terrain(A,B,C) :- worldWidth(WW), Z is WW//2, A < Z, B >= Z, print('to the '), print(C), print(' is a forest'), !.
+terrain(A,B,C) :- worldWidth(WW), Z is WW//2, A >= Z, B < Z, print('to the '), print(C), print(' is an open field'), !.
+terrain(A,B,C) :- worldWidth(WW), Z is WW//2, A >= Z, B >= Z, print('to the '), print(C), print(' is a dessert' ), !.
+
+terrainAll(X) :- 
+    oneToTwoDim(X,A,B), N is A-1, S is A+1, W is B-1, E is B+1, print('You\'re in Boltswaski, '), terrain(N,B,north), print(', '), terrain(S,B,south), print(', '),
+    terrain(A,W,west), print(', '), terrain(A,E,east), print('.'),nl.
+
 
 deadzoneDamagePlayer :- 
     player(X,A,B,C,D), deadzone(X), deadzoneDamage(DD), A1 is A-DD, retract(player(_,_,_,_,_)), asserta(player(X,A1,B,C,D)), fail.
@@ -523,7 +535,7 @@ n :-
     player(X,_,_,_,_), oneToTwoDim(X,A,_), A =:= 1, print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 n :- 
-    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X-WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X-WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, terrainAll(Y), !.
 
 s :-
     \+programStart, print('Program hasn\'t been started yet.'), nl, !.
@@ -532,7 +544,7 @@ s :-
     player(X,_,_,_,_), oneToTwoDim(X,A,_), worldWidth(WW), A =:= (WW-1), print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 s :- 
-    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X+WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X+WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, terrainAll(Y), !.
 
 w :-
     \+programStart, print('Program hasn\'t been started yet.'), nl, !.
@@ -541,7 +553,7 @@ w :-
     player(X,_,_,_,_), oneToTwoDim(X,_,B), B =:= 1 , print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 w :- 
-    addMoveCount, player(X,A,B,C,D), Y is X-1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    addMoveCount, player(X,A,B,C,D), Y is X-1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, terrainAll(Y), !.
 
 e :-
     \+programStart, print('Program hasn\'t been started yet.'), nl, !.
@@ -550,7 +562,7 @@ e :-
     player(X,_,_,_,_), oneToTwoDim(X,_,B), worldWidth(WW), B =:= (WW-1) , print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 e :- 
-    addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, terrainAll(Y), !.
 
 
 
@@ -616,7 +628,7 @@ use(Object) :-
     miscInventory(L1,L2,L3), searchList(L2, Object), !, player(A,B,C,D,E), !, print('You use the '), print(Object), print('.'), nl, deleteList(L2,Object,L4), retract(miscInventory(L1,L2,L3)), asserta(miscInventory(L1,L4,L3)), medStat(Object,AD), B1 is B+AD, playerMaxHP(Q), min(B1,Q,F), retract(player(_,_,_,_,_)), asserta(player(A,F,C,D,E)), !.
 
 use(Object) :-
-    player(A,B,C,Object,_), miscInventory(L1,L2,L3), searchList(L3,Object), !, print('You use the '), print(Object), print(' ammo.'), nl, deleteList(L3,Object,L4), retract(miscInventory(L1,L2,L4)), asserta(miscInventory(L1,L2,L4)), weaponStat(Object,_,_,AD), retract(player(_,_,_,_,_)), asserta(player(A,B,C,Object,AD)), !.
+    player(A,B,C,Object,_), miscInventory(L1,L2,L3), searchList(L3,Object), !, print('You use the '), print(Object), print(' ammo.'), nl, deleteList(L3,Object,L4), retract(miscInventory(L1,L2,L3)), asserta(miscInventory(L1,L2,L4)), weaponStat(Object,_,_,AD), retract(player(_,_,_,_,_)), asserta(player(A,B,C,Object,AD)), !.
 
 use(Object) :-
     print('You failed to use that '), print(Object), print(' whatsoever.'), nl, !.
@@ -648,3 +660,45 @@ attack :-
 
 attack :-
     player(X,_,_,C,_), enemy(X,E,F,G), print(' The shot hits the enemy. It looks painful.'), nl, weaponStat(C,DG,_,_), E1 is E-DG, retract(enemy(X,_,_,_)), asserta(enemy(X,E1,F,G)), checkDamageWin, counterattack, checkDamageWin, !.
+
+
+
+drop(Object) :-
+    weaponInventory(Object,Y),
+    retract(weaponInventory(Object,Y)),
+    weaponInInv(E), F is E-1, retractall(weaponInInv(_)), asserta(weaponInInv(F)),
+    player(X,A,B,C,D),
+    asserta(weaponLoot(X,Object,Y)), 
+    print('You drop the '), write(Object), print('.'), !. /* weapon */
+ 
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchList(A, Object), !,
+    player(P,Q,R,S,T),
+    deleteList(A, Object, D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(D,B,C)),
+    asserta(armorLoot(P,Object)),
+    print('You drop the '), print(Object), print('.'), !. /*armor */
+ 
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchList(B,Object), !,
+    player(P,Q,R,S,T),
+    asserta(medLoot(P,Object)),
+    deleteList(B, Object, D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(A,D,C)),
+    print('You drop the '),   print(Object), print('.'), !. /* MED */
+ 
+drop(Object) :-
+    miscInventory(A,B,C),
+    searchList(C, Object), !,
+    player(P,Q,R,S,T),
+    asserta(ammoLoot(P,Object)),
+    deleteList(C, Object, D),
+    retract(miscInventory(A,B,C)),
+    asserta(miscInventory(A,B,D)),
+    print('You drop the '), print(Object), print('.'), !. /* ammo */
+ 
+drop(Object) :- print('There is no such item in your inventory.'), !.
