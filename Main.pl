@@ -137,11 +137,11 @@ startArmor(L,[A|B],L1) :-
 
 startMed(L,[],L1) :- L1 = L, !.
 startMed(L,[A|B],L1) :-
-    takeRandElmt(L,L2,X), asserta(medLoot(X,A)), startArmor(L2,B,L1), !.
+    takeRandElmt(L,L2,X), asserta(medLoot(X,A)), startMed(L2,B,L1), !.
 
 startAmmo(L,[],L1) :- L1 = L, !.
 startAmmo(L,[A|B],L1) :-
-    takeRandElmt(L,L2,X), asserta(ammoLoot(X,A)), startArmor(L2,B,L1), !.
+    takeRandElmt(L,L2,X), asserta(ammoLoot(X,A)), startAmmo(L2,B,L1), !.
 
 startPosition :-
     addDeadzone(0), worldWidth(WW), WB is WW*WW-1, findall(X, (between(0,WB,X), \+deadzone(X)), L), startPlayer(L,L1), enemyStartNumber(ES), startEnemy(L1,ES,L2), startWeaponList(WL), startWeapon(L2,WL,L3), startArmorList(AL), startArmor(L3,AL,L4), startMedList(ML), startMed(L4,ML,L5), startAmmoList(AML), startAmmo(L5,AML,_).
@@ -156,7 +156,7 @@ start :-
 
 
 /* --------- quit ----------------------------------------------------- */
-quit :-
+quit :- !.
 /* 
 
 
