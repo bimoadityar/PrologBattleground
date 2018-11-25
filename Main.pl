@@ -71,15 +71,49 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 :- dynamic(deadzone/1).
 
 
+/* Added Rule */
 
+oneToTwoDim(X,A,B) :- worldWidth(WW), B is X mod WW, A is (X-B)//WW, !.
+twoToOneDim(A,B,X) :- worldWidth(WW), X is A * WW + B, !.
+
+randomProb(X) :- random(0,100,Y), X < Y, !.
+
+generateList(A,A,X) :- X = [], !.
+generateList(A,B,X) :- C is A+1, generateList(C,B,Y), X = [A|Y], !.
+
+removeElmt([],X,L2) :- L2 is [], !.
+removeElmt([X|B],X,L2) :- L2 is B, !.
+removeElmt([A|B],X,L2) :- removeElmt(B,X,L3), L2 = [A|L3], !.
+
+listLength([],X) :- X is 0, !.
+listLength([A|B],X) :- listLength(B,Y), X is Y + 1, !.
+
+/* assume listLength is at least X, base 0 */
+takeNthElmt([A|B],0,L2,X) :- L2 = B, X is A, !.
+takeNthElmt([A|B],D,L2,X) :- 
+    E is D-1, takeNthElmt(B,E,L3,X), L2 = [A|L3], !.
+
+/* remove X, a random element from L1 */
+takeRandElmt([],L2,X) :- L2 = [], X is 0, !.
+takeRandElmt(L1,L2,X) :-
+    listLength(L1,A), random(0,A,B), takeNthElmt(L1,B,L2,X), !.
 
 
 /* Command dalam spek */
 
 
 /* --------- init ----------------------------------------------------- */
+wipeData :-
+    retractall(player(_,_,_,_,_)), retractall(weaponInventory(_,_)), retractall(miscInventory(_,_,_)), retractall(enemy(_,_,_,_)), retractall(weaponLoot(_,_,_)), retractall(armorLoot(_,_)), retractall(medLoot(_,_)), retractall(ammoLoot(_,_)), retractall(weaponInInv(_)), retractall(moveCount(_)), retractall(deadzone(_)).
+
+startPosition :-
+
+
 start :-
 /* Bimo */
+    randomize, wipeData, startPosition, startStatus, startMap.
+
+
 /* Bim, ntar buat inisialisasi jumlah weapon di inventori, yang weaponInInv */
 
 
