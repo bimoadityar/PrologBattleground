@@ -73,6 +73,17 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 
 /* Added Rule */
 
+/* Search List */
+searchLi([],_,0) :- !. /* Basis */
+searchLi([A|_], C, 1) :- C == A, !. /* Found */
+searchLi([A|B], C, X) :- C \== A, searchLi(B, C, X).
+
+
+/*Konso List*/
+konso(Object,[L],[Y]) :- [Y] = [Object|L].
+
+
+
 oneToTwoDim(X,A,B) :- worldWidth(WW), B is X mod WW, A is (X-B)//WW, !.
 twoToOneDim(A,B,X) :- worldWidth(WW), X is A * WW + B, !.
 
@@ -81,12 +92,12 @@ randomProb(X) :- random(0,100,Y), X < Y, !.
 generateList(A,A,X) :- X = [], !.
 generateList(A,B,X) :- C is A+1, generateList(C,B,Y), X = [A|Y], !.
 
-removeElmt([],X,L2) :- L2 is [], !.
-removeElmt([X|B],X,L2) :- L2 is B, !.
+removeElmt([],_,L2) :- L2 = [], !.
+removeElmt([X|B],X,L2) :- L2 = B, !.
 removeElmt([A|B],X,L2) :- removeElmt(B,X,L3), L2 = [A|L3], !.
 
 listLength([],X) :- X is 0, !.
-listLength([A|B],X) :- listLength(B,Y), X is Y + 1, !.
+listLength([_|B],X) :- listLength(B,Y), X is Y + 1, !.
 
 /* assume listLength is at least X, base 0 */
 takeNthElmt([A|B],0,L2,X) :- L2 = B, X is A, !.
@@ -106,7 +117,12 @@ takeRandElmt(L1,L2,X) :-
 wipeData :-
     retractall(player(_,_,_,_,_)), retractall(weaponInventory(_,_)), retractall(miscInventory(_,_,_)), retractall(enemy(_,_,_,_)), retractall(weaponLoot(_,_,_)), retractall(armorLoot(_,_)), retractall(medLoot(_,_)), retractall(ammoLoot(_,_)), retractall(weaponInInv(_)), retractall(moveCount(_)), retractall(deadzone(_)).
 
+addDeadzone(K) :-
+    worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(deadzone(A1)), twoToOneDim(K1,X,A2), asserta(deadzone(A2)), twoToOneDim(X,K,A3), asserta(deadzone(A3)), twoToOneDim(X,K1,A4), asserta(deadzone(A4)))).
+
 startPosition :-
+    addDeadzone(0), 
+    
 
 
 start :-
@@ -563,17 +579,4 @@ modify_armor(X) :-
      X is 100, 
      asserta(player(A,B,X,D,E)), 
      write('You are fully protected!').
-
-/* Search List */
-searchLi([],_,0) :- !. /* Basis */
-searchLi([A|_], C, 1) :- C == A, !. /* Found */
-searchLi([A|B], C, X) :- C \== A, searchLi(B, C, X).
-
-/*Del X dari List */
-delLi([], _, []) :- !. /* basis */
-delLi([A|B], X, B):- X == A, !. /* found */
-delLi([A|B], X, [A|C]) :- X \== A, delInv(B,X,C).
-
-/*Konso List*/
-konso(Object,[L],[Y]) :- [Y] = [Object|L].
 
