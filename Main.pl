@@ -512,21 +512,29 @@ addMoveCount :-
 
 addMoveCount :- !.
 
+n :-
+    player(X,_,_,_,_), oneToTwoDim(X,A,_), A =:= 1, print('You can't reach the edge of the island, There is an ocean around the island'), !. 
+
 n :- 
     addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X-WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
+s :-
+    player(X,_,_,_,_), oneToTwoDim(X,A,_), A =:= (WW-1), print('You can't reach the edge of the island, There is an ocean around the island'), !. 
 
 s :- 
     addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X+WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
+w :-
+    player(X,_,_,_,_), oneToTwoDim(X,_,B), B =:= 1 , print('You can't reach the edge of the island, There is an ocean around the island'), !. 
 
 w :- 
     addMoveCount, player(X,A,B,C,D), Y is X-1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
+e :-
+    player(X,_,_,_,_), oneToTwoDim(X,_,B), B =:= (WW-1) , print('You can't reach the edge of the island, There is an ocean around the island'), !. 
 
 e :- 
     addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
-    
 
 take(Object) :- 
     player(X,HP,Ar,O,Z), weaponLoot(X, Object, Y), O==Object, retract(weapponLoot(X, Object,Y)),
