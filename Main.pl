@@ -537,14 +537,19 @@ invStatus :-
     Ammo == [],
     print('Your inventory is empty!'), !.
     
+
 invStatus :-
     miscInventory(Armor, Med, Ammo),
     print('You have:\n\t'),
     printWeaponInv,
     printList(Armor),
     printList(Med),
+    miscInventory(_,_,[]), !, 
+    print('\n\tand determination in your inventory.'), !.
+
+invStatus :-
     print('ammo of '), printList(Ammo),
-    print('\n\tand determination in your inventory.').
+    print('\n\tand determination in your inventory.'), !.
 
 /* --------- move ----------------------------------------------------- */
 enemyFollow(_) :-
