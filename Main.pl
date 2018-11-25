@@ -100,12 +100,12 @@ listLength([],X) :- X is 0, !.
 listLength([_|B],X) :- listLength(B,Y), X is Y + 1, !.
 
 /* assume listLength is at least X, base 0 */
-takeNthElmt([A|B],0,L2,X) :- L2 = B, X is A, !.
+takeNthElmt([A|B],0,L2,X) :- L2 = B, X = A, !.
 takeNthElmt([A|B],D,L2,X) :- 
     E is D-1, takeNthElmt(B,E,L3,X), L2 = [A|L3], !.
 
 /* remove X, a random element from L1 */
-takeRandElmt([],L2,X) :- L2 = [], X is 0, !.
+takeRandElmt([],L2,X) :- L2 = [], X = 0, !.
 takeRandElmt(L1,L2,X) :-
     listLength(L1,A), random(0,A,B), takeNthElmt(L1,B,L2,X), !.
 
