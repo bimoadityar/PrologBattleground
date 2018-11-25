@@ -30,10 +30,10 @@ medStat(smallKit, 40).
 medStat(mediumKit, 70).
 
 /* starting weapon ammo is to be randomized between 50%-100% of its full mag capacity */
-startWeapon([glock,glock,glock,deagle,deagle,mp7,mp7,galil,ak47]).
-startArmor([kevlar,kevlar,flak,helmet,helmet]).
-startMed([bandage,bandage,bandage,painKillier,painKiller,smallKit,smallKit,mediumKit,mediumKit]).
-startAmmo([glock,glock,deagle,deagle,mp7,mp7,galil,galil,ak47,ak47]).
+startWeaponList([glock,glock,glock,deagle,deagle,mp7,mp7,galil,ak47]).
+startArmorList([kevlar,kevlar,flak,helmet,helmet]).
+startMedList([bandage,bandage,bandage,painKillier,painKiller,smallKit,smallKit,mediumKit,mediumKit]).
+startAmmoList([glock,glock,deagle,deagle,mp7,mp7,galil,galil,ak47,ak47]).
 
 /* 
 Keep in mind that here we use a single number 0 - WW^2-1 to represent the coordinate, like so :
@@ -120,14 +120,35 @@ wipeData :-
 addDeadzone(K) :-
     worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(deadzone(A1)), twoToOneDim(K1,X,A2), asserta(deadzone(A2)), twoToOneDim(X,K,A3), asserta(deadzone(A3)), twoToOneDim(X,K1,A4), asserta(deadzone(A4)))).
 
-startPosition :-
-    addDeadzone(0), 
-    
+startPlayer(L,L1) :-
+     takeRandElmt(L,L1,P), playerMaxHP(MH), playerMaxArmor(MA), asserta(player(P,MH,MA,none,0)).
 
+startEnemy(L,0,L1) :- L1 = L, !.
+startEnemy(L,A,L1) :- 
+    takeRandElmt(L,L2,X), startWeaponList(WL), takeRandElmt(WL,_,W), enemyMaxHP(EM), weaponStat(W,_,_,AS), AS1 is AS+1, random(0,AS1,AS2), asserta(enemy(X,EM,W,AS2)), B is A-1, startEnemy(L2,B,L1), !.
+    
+startWeapon(L,[],L1) :- L1 = L, !.
+startWeapon(L,[A|B],L1) :-
+    takeRandElmt(L,L2,X), weaponStat(A,_,_,AS), AS1 is AS+1, random(0,AS1,AS2), asserta(weaponLoot(X,A,AS2)), startWeapon(L2,B,L1), !.
+
+startArmor(L,[],L1) :- L1 = L, !.
+startArmor(L,[A|B],L1) :-
+    takeRandElmt(L,L2,X), asserta(armorLoot(X,A)), startArmor(L2,B,L1), !.
+
+startMed(L,[],L1) :- L1 = L, !.
+startMed(L,[A|B],L1) :-
+    takeRandElmt(L,L2,X), asserta(medLoot(X,A)), startArmor(L2,B,L1), !.
+
+startAmmo(L,[],L1) :- L1 = L, !.
+startAmmo(L,[A|B],L1) :-
+    takeRandElmt(L,L2,X), asserta(ammoLoot(X,A)), startArmor(L2,B,L1), !.
+
+startPosition :-
+    addDeadzone(0), worldWidth(WW), WB is WW*WW-1, findall(X, (between(0,WB,X), \+deadzone(X)), L), startPlayer(L,L1), enemyStartNumber(ES), startEnemy(L1,ES,L2), startWeaponList(WL), startWeapon(L2,WL,L3), startArmorList(AL), startArmor(L3,AL,L4), startMedList(ML), startMed(L4,ML,L5), startAmmoList(AML), startAmmo(L5,AML,_).
 
 start :-
 /* Bimo */
-    randomize, wipeData, startPosition, startStatus, startMap.
+    randomize, wipeData, startPosition.
 
 
 /* Bim, ntar buat inisialisasi jumlah weapon di inventori, yang weaponInInv */
