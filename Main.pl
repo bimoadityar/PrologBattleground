@@ -513,7 +513,7 @@ attack :- /* AMMO ENEMY AKHIRNYA ABIS */
     Z is Q-A, retract(enemy(P,Q,R,S,)), asserta(enemy(P,Z,R,S)), /* kurangin HP */
     Z \= 0, write('You attacked the enemy and the enemy tried to fight back with a '), write(R), write('.'),
     retract(enemy(P,Z,R,S)), S is S-1, asserta(enemy(P,Z,R,S)), /* kurangin Ammo enemy */
-    S =:= 0, write(' But he has got no ammo left. Attack him!').
+    S =:= 0, write(' But he has got no ammo left. Attack him!'), !.
     /* enemynya melawan balik, tp ammonya abis */
 
 attack :-
@@ -525,7 +525,7 @@ attack :-
     Z \= 0, write('You attacked the enemy and the enemy fought back with a '), write(R), write('.'),
     retract(enemy(P,Z,R,S)), T is S-1, asserta(enemy(P,Z,R,T)), /* kurangin Ammo enemy */
     weaponStat(R,E,_,G),
-    W ==  0, V is V-E, retract(player(U,V,W,X,Y)), asserta(player(U,V,W,X,Y)). /* health kita kurang */
+    W ==  0, V is V-E, retract(player(U,V,W,X,Y)), asserta(player(U,V,W,X,Y)), !. /* health kita kurang */
     /* enemynya melawan balik */
 
 attack :-
