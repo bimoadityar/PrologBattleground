@@ -138,6 +138,17 @@ takeRandElmt([],L2,X) :- L2 = [], X = 0, !.
 takeRandElmt(L1,L2,X) :-
     listLength(L1,A), random(0,A,B), takeNthElmt(L1,B,L2,X), !.
 
+/* terrain */
+terrain(A,B,C) : twoToOneDim(A,B,X), border(X), print('to the '), print(C), print(' is the edge of island'), nl, !.
+terrain(A,B,C) : twoToOneDim(A,B,X), deadzone(X), print('to the '), print(C), print(' is a deadzone'), nl, !.
+terrain(A,B,C) : worldWidth(WW), Z is WW//2, A < Z, B < Z, print('to the '), print(C), print(' is a swamp'), nl, !.
+terrain(A,B,C) : worldWidth(WW), Z is WW//2, A < Z, B >= Z, print('to the '), print(C), print(' is a forest'), nl, !.
+terrain(A,B,C) : worldWidth(WW), Z is WW//2, A >= Z, B < Z, print('to the '), print(C), print(' is an open field'), nl, !.
+terrain(A,B,C) : worldWidth(WW), Z is WW//2, A >= Z, B >= Z, print('to the '), print(C), print(' is a dessert' ), nl, !.
+
+terrainAll(X) : 
+    oneToTwoDim(X,A,B), N is A-1, S is A+1, W is B-1, E is B+1, print('you're in Boltswaski, '), terrain(N,B,north), print(', ), terrain(S,B,south), print(', ),
+    terrain(A,W,west), print(', '), terrain(A,E,east), print('.'),nl.
 
 deadzoneDamagePlayer :- 
     player(X,A,B,C,D), deadzone(X), deadzoneDamage(DD), A1 is A-DD, retract(player(_,_,_,_,_)), asserta(player(X,A1,B,C,D)), fail.
@@ -517,25 +528,25 @@ n :-
     player(X,_,_,_,_), oneToTwoDim(X,A,_), A =:= 1, print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 n :- 
-    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X-WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X-WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, terrainAll(Y), !.
 
 s :-
     player(X,_,_,_,_), oneToTwoDim(X,A,_), worldWidth(WW), A =:= (WW-1), print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 s :- 
-    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X+WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X+WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, terrainAll(Y), !.
 
 w :-
     player(X,_,_,_,_), oneToTwoDim(X,_,B), B =:= 1 , print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 w :- 
-    addMoveCount, player(X,A,B,C,D), Y is X-1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    addMoveCount, player(X,A,B,C,D), Y is X-1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, terrainAll(Y), !.
 
 e :-
     player(X,_,_,_,_), oneToTwoDim(X,_,B), worldWidth(WW), B =:= (WW-1) , print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 e :- 
-    addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+    addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, terrainAll(Y), !.
 
 
 
