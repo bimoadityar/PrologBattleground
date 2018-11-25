@@ -69,6 +69,8 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 /* Is coordinate X in deadzone */
 :- dynamic(deadzone/1).
 
+:- dynamic(border/1).
+
 :- dynamic(programStart/0).
 
 /* Added Rule */
@@ -89,12 +91,19 @@ printList(L) :-
 printList([H|T]) :-
     print(H), print(', '), 
     printList(T).
+
+min(A,B,C) :- A < B, C is A, !.
+min(_,B,C) :- C is B, !.
     
 
 /* Search List */
 searchList([],_) :- !, fail.
 searchList([A|_],A) :- !.
-searchList([_|B],C) :- searchList(B,C), !. 
+searchList([_|B],C) :- searchList(B,C), !.
+
+deleteList([],_,L) :- L = [], !.
+deleteList([A|B],A,L) :- L = B, !.
+deleteList([A|B],C,L) :- deleteList(B,C,L1), L =[A|L1], !.
 
 
 /*Konso List*/
@@ -158,6 +167,9 @@ wipeData :-
 addDeadzone(K) :-
     worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(deadzone(A1)), twoToOneDim(K1,X,A2), asserta(deadzone(A2)), twoToOneDim(X,K,A3), asserta(deadzone(A3)), twoToOneDim(X,K1,A4), asserta(deadzone(A4)))).
 
+addBorder(K) :-
+    worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(border(A1)), twoToOneDim(K1,X,A2), asserta(border(A2)), twoToOneDim(X,K,A3), asserta(border(A3)), twoToOneDim(X,K1,A4), asserta(border(A4)))).
+
 startPlayer(L,L1) :-
      takeRandElmt(L,L1,P), playerMaxHP(MH), playerMaxArmor(MA), asserta(player(P,MH,MA,none,0)), asserta(miscInventory([],[],[])), asserta(moveCount(0)).
 
@@ -182,7 +194,7 @@ startAmmo(L,[A|B],L1) :-
     takeRandElmt(L,L2,X), asserta(ammoLoot(X,A)), startAmmo(L2,B,L1), !.
 
 startPosition :-
-    addDeadzone(0), worldWidth(WW), WB is WW*WW-1, findall(X, (between(0,WB,X), \+deadzone(X)), L), startPlayer(L,L1), enemyStartNumber(ES), startEnemy(L1,ES,L2), startWeaponList(WL), startWeapon(L2,WL,L3), startArmorList(AL), startArmor(L3,AL,L4), startMedList(ML), startMed(L4,ML,L5), startAmmoList(AML), startAmmo(L5,AML,_).
+    addBorder(0), addDeadzone(1), worldWidth(WW), WB is WW*WW-1, findall(X, (between(0,WB,X), \+deadzone(X)), L), startPlayer(L,L1), enemyStartNumber(ES), startEnemy(L1,ES,L2), startWeaponList(WL), startWeapon(L2,WL,L3), startArmorList(AL), startArmor(L3,AL,L4), startMedList(ML), startMed(L4,ML,L5), startAmmoList(AML), startAmmo(L5,AML,_).
 
 start :-
 /* Bimo */
@@ -202,11 +214,6 @@ quit :-
     print('Farewell, it was a good game!'),
     halt.
 /* 
-
-
-
-
-
 /* --------- save & load ------------------------------------------------ */
 /*Fitria*/
 
@@ -277,6 +284,8 @@ help :-
     nl, print('     |         X         | Inaccessible                                  |'),
     nl, print('      ===================================================================').
 
+printLook1(X) :-
+    border(X), print('#'), !.
 printLook1(X) :-
     enemy(X,_,_,_), print('E'), !.
 printLook1(X) :-
@@ -361,6 +370,10 @@ printPosition(X) :-
     print(' at your southeast '),!.
 
 look1(X,Found) :-
+    border(X), Found = 1,nl,
+    print('a cliff'),
+    printPosition(X),!.
+look1(X,Found) :-
     enemy(X,_,_,_), Found = 1,nl,
     print('an enemy'),
     printPosition(X),!.
@@ -414,6 +427,7 @@ look :-
     X0 is X-WW-1,
     nl, printLook(X0).
 
+
 /*Fitria*/
 map :-
     \+programStart, print('Program hasn\'t been started yet.'), nl, !.
@@ -425,29 +439,20 @@ printMap(X) :-
     worldWidth(WW),
     MaX is WW*WW-1,
     X == MaX,
-    player(X,_,_,_,_), print('P'), !.
-
-printMap(X) :-
-    worldWidth(WW),
-    MaX is WW*WW-1,
-    X == MaX,
-    deadzone(X), print('X'), !.
+    border(X), print('#'), !.
 
 printMap(X) :-
     worldWidth(WW),
     Xmod is X mod WW,
     Xmod == 0,
-    player(X,_,_,_,_),
-    nl, print('P'), !,
+    border(X),
+    nl, print('#'), !,
     N is X+1, printMap(N).
 
 printMap(X) :-
-    worldWidth(WW),
-    Xmod is X mod WW,
-    Xmod == 0,
-    deadzone(X),
-    nl, print('X'), !,
+    border(X), print('#'), !,
     N is X+1, printMap(N).
+
 
 printMap(X) :-
     player(X,_,_,_,_), print('P'), !,
@@ -502,27 +507,32 @@ invStatus :-
     printList(Ammo),
     print('\n\tand determination in your inventory.').
 
-
-
-    
-
 /* --------- move ----------------------------------------------------- */
 addMoveCount :-
     moveCount(X), X1 is X+1, retract(moveCount(_)), asserta(moveCount(X1)), deadzoneSpeed(DS), X1 mod DS =:= 0, A is X1//DS, addDeadzone(A), !.
 
 addMoveCount :- !.
 
+n :-
+    player(X,_,_,_,_), oneToTwoDim(X,A,_), A =:= 1, print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
+
 n :- 
     addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X-WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
+s :-
+    player(X,_,_,_,_), oneToTwoDim(X,A,_), worldWidth(WW), A =:= (WW-1), print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 s :- 
     addMoveCount, player(X,A,B,C,D), worldWidth(WW), Y is X+WW, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
+w :-
+    player(X,_,_,_,_), oneToTwoDim(X,_,B), B =:= 1 , print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 w :- 
     addMoveCount, player(X,A,B,C,D), Y is X-1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
 
+e :-
+    player(X,_,_,_,_), oneToTwoDim(X,_,B), worldWidth(WW), B =:= (WW-1) , print('You can\'t reach the edge of the island, There is an ocean around the island'), !. 
 
 e :- 
     addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
@@ -573,3 +583,23 @@ take(Object) :-
     
 take(_) :- 
     print('There is no such object. You leave the ground alone.'), nl, !.
+
+
+use(Object) :-
+    weaponInventory(Object,Y), player(A,B,C,none,_), !, print('You equip the '), print(Object), print('.'), nl, retract(player(_,_,_,_,_)), asserta(player(A,B,C,Object,Y)), retract(weaponInventory(Object,_)), !.
+
+use(Object) :-
+    weaponInventory(Object,Y), player(A,B,C,D,E), !, print('You equip the '), print(Object), print('.'), nl, retract(player(_,_,_,_,_)), asserta(player(A,B,C,Object,Y)), retract(weaponInventory(Object,_)), asserta(weaponInventory(D,E)), !.
+
+use(Object) :-
+    miscInventory(L1,L2,L3), searchList(L1, Object), !, player(A,B,C,D,E), !, print('You use the '), print(Object), print('.'), nl, deleteList(L1,Object,L4), retract(miscInventory(L1,L2,L3)), asserta(miscInventory(L4,L2,L3)), armorStat(Object,AD), C1 is C+AD, playerMaxArmor(Q), min(C1,Q,F), retract(player(_,_,_,_,_)), asserta(player(A,B,F,D,E)), !.
+
+use(Object) :-
+    miscInventory(L1,L2,L3), searchList(L2, Object), !, player(A,B,C,D,E), !, print('You use the '), print(Object), print('.'), nl, deleteList(L2,Object,L4), retract(miscInventory(L1,L2,L3)), asserta(miscInventory(L1,L4,L3)), medStat(Object,AD), B1 is B+AD, playerMaxHP(Q), min(B1,Q,F), retract(player(_,_,_,_,_)), asserta(player(A,F,C,D,E)), !.
+
+use(Object) :-
+    player(A,B,C,Object,_), miscInventory(L1,L2,L3), searchList(L3,Object), !, print('You use the '), print(Object), print(' ammo.'), nl, deleteList(L3,Object,L4), retract(miscInventory(L1,L2,L4)), asserta(miscInventory(L1,L2,L4)), weaponStat(Object,_,_,AD), retract(player(_,_,_,_,_)), asserta(player(A,B,C,Object,AD)), !.
+
+use(Object) :-
+    print('You failed to use that '), print(Object), print(' whatsoever.'), nl, !.
+
