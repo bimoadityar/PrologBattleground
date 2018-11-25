@@ -519,7 +519,7 @@ invStatus :-
     printWeaponInv,
     printList(Armor),
     printList(Med),
-    printList(Ammo),
+    print('ammo of '), printList(Ammo),
     print('\n\tand determination in your inventory.').
 
 /* --------- move ----------------------------------------------------- */
