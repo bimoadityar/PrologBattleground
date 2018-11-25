@@ -440,45 +440,54 @@ invStatus :-
     
 
 /* --------- move ----------------------------------------------------- */
-n :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+n :- 
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
     retract(player(X,HP,Ar,Wp,Am)),!.
-n :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW, asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
+n :- 
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
 
 
-s :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
-    retract(Player(X,HP,Ar,Wp,Am)),!.
-s :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW, asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
+s :- 
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+    retract(player(X,HP,Ar,Wp,Am)),!.
+s :- 
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
 
 
-w :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-1 , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
-    retract(Player(X,HP,Ar,Wp,Am)),!.
-w :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-1, asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
+w :- 
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-1 , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+    retract(player(X,HP,Ar,Wp,Am)),!.
+w :- 
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-1, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
 
 
-e :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
-    retract(Player(X,HP,Ar,Wp,Am)),!.
-e :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
+e :- 
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+    retract(player(X,HP,Ar,Wp,Am)),!.
+e :- 
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
+
 
 /* --------- other action ---------------------------------------------- */
-take(Object) :- player(X,HP,Ar,Object,Z), weaponLoot(X, Object, Y), retract(weapponLoot(X, Object,Y)), \+ (weaponInventory(Object,_),
-                B is Y+Z, asserta(Player(X,HP,Ar,Object,B)), retract(Player(X,HP,Ar,Object,Z)), print('You took the Ammo of '),
-                print(Object), print(', now the current Ammo is'), print(B), !.
-take(Object) :- player(X,_,_,_,_), weaponLoot(X, Object, Y), \+ (weaponInventory(Object,_), retract(weapponLoot(X, Object,Y)), InInv(Z), inventoryCapacity(C), Z < C,
-                A is Z+1, asserta(InInv(A)), retract(InInv(Z)), asserta(weaponInventory(Object,Y), print('You took the '),print(Object),!.
+take(Object) :- player(X,HP,Ar,Object,Z), weaponLoot(X, Object, Y), retract(weapponLoot(X, Object,Y)), \+(weaponInventory(Object,_)),
+                B is Y+Z, asserta(player(X,HP,Ar,Object,B)), retract(player(X,HP,Ar,Object,Z)), print('You took the Ammo of '),
+                print(Object), print(', now the current Ammo is'), print(B),!.
+take(Object) :- player(X,_,_,_,_), weaponLoot(X, Object, Y), \+ (weaponInventory(Object,_)), retract(weapponLoot(X, Object,Y)), inInv(Z), inventoryCapacity(C), Z < C,
+                A is Z+1, asserta(inInv(A)), retract(inInv(Z)), asserta(weaponInventory(Object,Y)), print('You took the '),print(Object), !.
 take(Object) :- player(X,_,_,_,_), weaponLoot(X, Object, Y), weaponInventory(Object,Z),
                 B is Y+Z, asserta(weaponInventory(Object,B)), retract(weaponInventory(Object,Z)), print('You took the Ammo of '),
-                print(Object), print(', now the current Ammo is'), print(B), !.
-take(Object) :- inventoryCapacity(C), Inv(Z), Z=:=C, print('Your inventory is full'), !. 
+                print(Object), print(', now the current Ammo is'), print(B),!.
+take(Object) :- inventoryCapacity(C), inv(Z), Z=:=C, print('Your inventory is full'),!. 
 
-take(Object) :- player(X,_,_,_,_), armorLoot(X, Object), InInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
-                konso(Object,[Ar],[Y]), asserta(miscInventory([Y],[Med],[Am])),  retract(armorLoot(X,Object)),
-                retract([Ar],[Med]),[Am]), print('You took the '), print(Object),!.
-take(Object) :- player(X,_,_,_,_), medLoot(X, Object), InInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
+take(Object) :- player(X,_,_,_,_), armorLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
+                konso(Object,[Ar],[Y]), asserta(miscInventory([Y],[Med],[Am])), retract(armorLoot(X,Object)),
+                retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),!.
+take(Object) :- player(X,_,_,_,_), medLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
                 konso(Object,[Med],[Y]), asserta(miscInventory([Ar],[Y],[Am])), retract(medLoot(X,Object)),
-                retract([Ar],[Med]),[Am]), print('You took the '), print(Object),!.
-take(Object) :- player(X,_,_,_,_), ammoLoot(X, Object), InInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
+                retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),!.
+take(Object) :- player(X,_,_,_,_), ammoLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
                 konso(Object,[Am],[Y]), asserta(miscInventory([Ar],[Med],[Y])), retract(armorLoot(X,Object)),
-                retract([Ar],[Med]),[Am]),  print('You took the '), print(Object), !.            
+                retract(miscInventory([Ar],[Med],[Am])),  print('You took the '), print(Object),!.          
 take(Object) :- print('Object not found.').
 
 /* Irena */ 
