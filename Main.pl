@@ -488,7 +488,7 @@ status :-
     print('Health   : '), print(PlayerHP), nl,
     print('Armor    : '), print(PlayerArmor), nl,
     print('Weapon   : '), print(Weapon), nl,
-    print('Ammo     : '), print(Ammo), nl,
+    print('Ammo     : '), print('Ammo of '), print(Ammo), nl,
     invStatus.
     
 printWeaponInv :-
