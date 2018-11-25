@@ -262,34 +262,27 @@ save(_) :-
     \+programStart, print('Program hasn\'t been started yet.'), nl, !.
 
 save(Filename) :-
-    open(Filename, write, Stream),
+    telling(Old), tell(Filename),
+    listing(player/5), listing(weaponInventory/2), listing(miscInventory/3),
+    listing(enemy/4), listing(weaponLoot/3), listing(armorLoot/2), listing(medLoot/2), listing(ammoLoot/2),
+    listing(moveCount/1), listing(deadzone/1), listing(border/1), listing(programStart/0),
+    told, tell(Old),
+    write('Your current game state has been saved to '), write(Filename), write(' succesfully.'), nl.
 
-    /*Initiate data to var*/
-    /*Player data*/
-    player(X, PlayerHP, PlayerArmor, EquipedWeapon, WeaponAmmo),
-    
-    write(Stream, X), write(Stream,'.'), nl(Stream),
-    write(Stream, PlayerHP), write(Stream,'.'), nl(Stream),
-    write(Stream, PlayerArmor), write(Stream,'.'), nl(Stream),
-    write(Stream, EquipedWeapon), write(Stream,'.'), nl(Stream),
-    write(Stream, WeaponAmmo), write(Stream,'.'), nl(Stream),
+loadGame(Filename) :-
+    quit,
+    seeing(Old),
+    see(Filename),
+    repeat,
+    read(Data),
+    process(Data),
+    seen,
+    print('You have succesfully load '), print(Filename), print('.'),
+    see(Old),
+    !.
 
-    /*Inventory data*/
-    forall(weaponInventory(Weapon, InvWeaponAmmo),(
-        write(Stream, Weapon), write(Stream,'.'), nl(Stream),
-        write(Stream, InvWeaponAmmo), write(Stream,'.'), nl(Stream)
-    )),
-
-    write('Your current game state has been saved to '), write(Filename), write(' succesfully.'), nl,
-    
-    close(Stream).
-
-    /*Only save player state and inventory data*/
-
-loadGame(_) :- !.
-
-
-
+process(end_of_file) :- !.
+process(Data) :- asserta(Data), fail.
 
 /* --------- info ----------------------------------------------------- */
 help :-
