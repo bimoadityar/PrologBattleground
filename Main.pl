@@ -4,6 +4,7 @@
 worldWidth(15).
 /* deadzoneSpeed the number moves the player makes when the deadzone progress */
 deadzoneSpeed(5).
+deadzoneDamage(30).
 
 playerMaxHP(100).
 playerMaxArmor(100).
@@ -129,7 +130,7 @@ addDeadzone(K) :-
     worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(deadzone(A1)), twoToOneDim(K1,X,A2), asserta(deadzone(A2)), twoToOneDim(X,K,A3), asserta(deadzone(A3)), twoToOneDim(X,K1,A4), asserta(deadzone(A4)))).
 
 startPlayer(L,L1) :-
-     takeRandElmt(L,L1,P), playerMaxHP(MH), playerMaxArmor(MA), asserta(player(P,MH,MA,none,0)), asserta(miscInventory([],[],[])).
+     takeRandElmt(L,L1,P), playerMaxHP(MH), playerMaxArmor(MA), asserta(player(P,MH,MA,none,0)), asserta(miscInventory([],[],[])), asserta(moveCount(0)).
 
 startEnemy(L,0,L1) :- L1 = L, !.
 startEnemy(L,A,L1) :- 
@@ -440,225 +441,37 @@ invStatus :-
     
 
 /* --------- move ----------------------------------------------------- */
+addMoveCount :-
+    moveCount(X), X1 is X+1, retract(moveCount(_)), asserta(moveCount(X1)), deadzoneSpeed(DS), X1 mod DS =:= 0, A is X1//DS, addDeadzone(A), !.
+
+addMoveCount :- !.
+
 n :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+    addMoveCount, player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), deadzoneDamage(Z), S is HP-Z, asserta(player(Y,S,Ar,Wp,Am)),
     retract(player(X,HP,Ar,Wp,Am)),!.
 n :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
+    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(Y,HP,Ar,Wp,Am)).
 
 
 s :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+    addMoveCount, player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW , deadzone(Y), deadzoneDamage(Z), S is HP-Z, asserta(player(Y,S,Ar,Wp,Am)),
     retract(player(X,HP,Ar,Wp,Am)),!.
 s :- 
     player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+WW, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
 
 
 w :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-1 , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+    addMoveCount, player(X,HP,Ar,Wp,Am), Y is X-1 , deadzone(Y), deadzoneDamage(Z), S is HP-Z, asserta(player(Y,S,Ar,Wp,Am)),
     retract(player(X,HP,Ar,Wp,Am)),!.
 w :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-1, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
+    player(X,HP,Ar,Wp,Am), Y is X-1, asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
 
 
 e :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+    addMoveCount, player(X,HP,Ar,Wp,Am), Y is X+1 , deadzone(Y), deadzoneDamage(Z), S is HP-Z, asserta(player(Y,S,Ar,Wp,Am)),
     retract(player(X,HP,Ar,Wp,Am)),!.
 e :- 
-    player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X+1 , asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
+    player(X,HP,Ar,Wp,Am), Y is X+1 , asserta(player(Y,HP,Ar,Wp,Am)), retract(player(X,HP,Ar,Wp,Am)).
 
 
-/* --------- other action ---------------------------------------------- */
-take(Object) :- player(X,HP,Ar,Object,Z), weaponLoot(X, Object, Y), retract(weapponLoot(X, Object,Y)), \+(weaponInventory(Object,_)),
-                B is Y+Z, asserta(player(X,HP,Ar,Object,B)), retract(player(X,HP,Ar,Object,Z)), print('You took the Ammo of '),
-                print(Object), print(', now the current Ammo is'), print(B),!.
-take(Object) :- player(X,_,_,_,_), weaponLoot(X, Object, Y), \+ (weaponInventory(Object,_)), retract(weapponLoot(X, Object,Y)), inInv(Z), inventoryCapacity(C), Z < C,
-                A is Z+1, asserta(inInv(A)), retract(inInv(Z)), asserta(weaponInventory(Object,Y)), print('You took the '),print(Object), !.
-take(Object) :- player(X,_,_,_,_), weaponLoot(X, Object, Y), weaponInventory(Object,Z),
-                B is Y+Z, asserta(weaponInventory(Object,B)), retract(weaponInventory(Object,Z)), print('You took the Ammo of '),
-                print(Object), print(', now the current Ammo is'), print(B),!.
-take(Object) :- inventoryCapacity(C), inv(Z), Z=:=C, print('Your inventory is full'),!. 
 
-take(Object) :- player(X,_,_,_,_), armorLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
-                konso(Object,[Ar],[Y]), asserta(miscInventory([Y],[Med],[Am])), retract(armorLoot(X,Object)),
-                retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),!.
-take(Object) :- player(X,_,_,_,_), medLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
-                konso(Object,[Med],[Y]), asserta(miscInventory([Ar],[Y],[Am])), retract(medLoot(X,Object)),
-                retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),!.
-take(Object) :- player(X,_,_,_,_), ammoLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
-                konso(Object,[Am],[Y]), asserta(miscInventory([Ar],[Med],[Y])), retract(armorLoot(X,Object)),
-                retract(miscInventory([Ar],[Med],[Am])),  print('You took the '), print(Object),!.          
-take(Object) :- print('Object not found.').
-
-/* Irena */ 
-attack :- player(U,V,W,X,Y), enemy(P,Q,R,S), U\==P, write('There is no enemy around you!'), !.
-attack :- weaponInInv(P), P==0, write('You have no weapon!'), !.
-attack :- player(U,V,W,X,Y), Y==0, write('Hey, you have no ammo!'), !.
-attack :-
-    player(U,_,_,X,Y), enemy(P,Q,_,_), U=:=P, /* bisa attack */
-    weaponStat(X,A,B,C),
-    randomProb(B), !, /* kalo gak miss */
-    retract(weaponStat(X,A,B,C)), C is C-1, asserta(weaponStat(X,A,B,C)), /*ammo kita kurang satu */
-    Z is Q-A, retract(enemy(P,Q,_,_,)), asserta(enemy(P,Z,R,S)), /* kurangin HP */
-    Z == 0, deadenemy, write('You attacked the enemy and successfully killed him. The enemy dropped  some items.'), /* enemy nya mati */
-    weaponLoot(U,R,S),!.
-
-attack :-
-    player(U,V,W,X,Y), enemy(P,Q,R,S), U=:=P, /* bisa attack */
-    weaponStat(X,A,B,C),
-    randomProb(B), !, /* kalo gak miss */
-    retract(weaponStat(X,A,B,C)), C is C-1, asserta(weaponStat(X,A,B,C)), /*ammo kita kurang satu */
-    Z is Q-A, retract(enemy(P,Q,R,S,)), asserta(enemy(P,Z,R,S)), /* kurangin HP */
-    Z \= 0, write('You attacked the enemy and the enemy fought back with a '), write(R), write('.'),
-    retract(enemy(P,Z,R,S)), S is S-1, asserta(enemy(P,Z,R,S)), /* kurangin Ammo enemy */
-    weaponStat(R,E,_,G),
-    W \=  0, W is W-E, retract(player(U,V,W,X,Y)), asserta(player(U,V,W,X,Y)), !. /* kurangin armor */
-/* enemynya melawan balik, armor kita ada */
-
-attack :- /* AMMO ENEMY AKHIRNYA ABIS */
-    player(U,V,W,X,Y), enemy(P,Q,R,S), U=:=P, /* bisa attack */
-    weaponStat(X,A,B,C),
-    randomProb(B), !, /* kalo gak miss */
-    retract(weaponStat(X,A,B,C)), C is C-1, asserta(weaponStat(X,A,B,C)), /*ammo kita kurang satu */
-    Z is Q-A, retract(enemy(P,Q,R,S,)), asserta(enemy(P,Z,R,S)), /* kurangin HP */
-    Z \= 0, write('You attacked the enemy and the enemy tried to fight back with a '), write(R), write('.'),
-    retract(enemy(P,Z,R,S)), S is S-1, asserta(enemy(P,Z,R,S)), /* kurangin Ammo enemy */
-    S =:= 0, write(' But he has got no ammo left. Attack him!'), !.
-    /* enemynya melawan balik, tp ammonya abis */
-
-attack :-
-    player(U,V,W,X,Y), enemy(P,Q,R,S), U=:=P, /* bisa attack */
-    weaponStat(X,A,B,C),
-    randomProb(B), !, /* kalo gak miss */
-    retract(weaponStat(X,A,B,C)), C is C-1, asserta(weaponStat(X,A,B,C)), /*ammo kita kurang satu */
-    Z is Q-A, retract(enemy(P,Q,R,S,)), asserta(enemy(P,Z,R,S)), /* kurangin HP */
-    Z \= 0, write('You attacked the enemy and the enemy fought back with a '), write(R), write('.'),
-    retract(enemy(P,Z,R,S)), T is S-1, asserta(enemy(P,Z,R,T)), /* kurangin Ammo enemy */
-    weaponStat(R,E,_,G),
-    W ==  0, V is V-E, retract(player(U,V,W,X,Y)), asserta(player(U,V,W,X,Y)), !. /* health kita kurang */
-    /* enemynya melawan balik */
-
-attack :-
-    player(U,_,_,X,Y), enemy(P,Q,_,_), U=:=P, /* bisa attack */
-    weaponStat(X,A,B,C), randomProb(B), !, write('You tried to attack but you failed. Beware, the enemy will get mad!'), retract(weaponStat(X,A,B,C)), C is C-1, asserta(weaponStat(X,A,B,C)),!. /*ammo kita kurang satu */
-        /* kalo miss gimana */
-
-use (Object) :-
-    weaponInventory(Object,Y),
-    Y=:=0,
-    write(Object), write(' is equipped. '), write(' But the weapon is empty!'),
-    retract(weaponInventory(Object,Y)),
-    player(A,B,C,D,E),
-    retract(player(A,B,C,D,E)),
-    D is Object,
-    E is Y,
-    asserta(player(A,B,C,D,E)), !.
-
-use (Object) :-
-    weaponInventory(Object,Y),
-    Y\=0,
-    write(Object), write(' is reloaded with '), write(Y), write(' ammo. Ready for soup dinner!'),
-    retract(weaponInventory(Object,Y)),
-    player(A,B,C,D,E),
-    retract(player(A,B,C,D,E)),
-    D is Object,
-    E is Y,
-    asserta(player(A,B,C,D,E)), !.
-
-use(Object) :-
-    miscInventory(A,B,C),
-    searchLi(A,Object,X), X=:=1,
-    armorStat(Object,A),
-    modify_armor(A),
-    write('You used the '), write(Object), write('.'),!. /* armor */
-
-use(Object) :-
-    miscInventory(A,B,C),
-    searchLi(B,Object,X), X=:=1,
-    medStat(Object, Y),
-    modify_health(Y),
-    write('You used the medicine. '), !.
-
-use(Object) :-
-    miscInventory(A,B,C),
-    searchLi(C,Object,X), X=:=1,
-    weaponInventory(Object,Y), retract(weaponInventory(Object,Y)),
-    weaponStat(Object,_,_,Z),
-    asserta(weaponInventory(Object,Z)),
-    write('Increasing your ammo, ready to go!'), !.
-
-use(Object) :- write('There is no such item in your inventory.'), !.
-
-drop(Object) :-
-    weaponInventory(Object,Y),
-    retract(weaponInventory(Object,Y)),
-    player(X,A,B,C,D),
-    asserta(weaponLoot(X,Object,Y)), !. /* weapon */
-
-drop(Object) :-
-    miscInventory(A,B,C),
-    searchLi(A,Object,X), X=:=1,
-    player(P,Q,R,S,T),
-    asserta(armorLoot(P,Object)),
-    delLi(A,Object,D),
-    retract(miscInventory(A,B,C)),
-    asserta(miscInventory(D,B,C)),
-    write('You drop the '), write(Object), write('.'), !. /*armor */
-
-drop(Object) :-
-    miscInventory(A,B,C),
-    searchLi(B,Object,X), X =:=1,
-    player(P,Q,R,S,T),
-    asserta(medLoot(P,Object)),
-    delLi(B,Object,D),
-    retract(miscInventory(A,B,C)),
-    asserta(miscInventory(D,B,C)),
-    write('You drop the '),   write(Object), write('.'), !. /* MED */
-
-drop(Object) :-
-    miscInventory(A,B,C),
-    searchLi(C,Object,X), X=:=1,
-    player(P,Q,R,S,T),
-    asserta(ammoLoot(P,Object)),
-    delLi(C,Object,D),
-    retract(miscInventory(A,B,C)),
-    asserta(miscInventory(D,B,C)),
-    write('You drop the '), write(Object), write('.'), !. /* ammo */
-
-drop(Object) :- write('There is no such item in your inventory.'), !.
-
-    /* modify health */
-
-modify_health(X) :-
-    player(A,B,C,D,E), B<100, retract(player(A,B,C,D,E)), X is X + B, asserta(player(A,X,C,D,E)), !.
-
-modify_health(X) :-
-    player(A,B,C,D,E), B =:= 100, write('You are already on your prime condition!'),!.
-
-modify_health(X) :-
-    player(A,B,C,D,E), B>100, retract(player(A,B,C,D,E)), X is 100, player(A,X,C,D,E),
-    asserta(player(A,X,C,D,E)), !.
-
-    /* modify armor */
-modify_armor(X) :-
-    player(_,_,C,_,_), C<100, retract(player(_,_,C,_,_)), X is X+C, asserta(player(_,_,X,_,_)), write(' Increasing your armor!'), !.
-
-modify_armor(X) :-
-    player(A,B,C,D,E), C=:=100, write('You are fully protected!'), !.
-
-modify_armor(X) :-
-     player(A,B,C,D,E), C>100, retract(player(A,B,C,D,E)), X is 100, asserta(player(A,B,X,D,E)), write('You are fully protected!'), !.
-
-/* Search List */
-searchLi([],_,0) :- !. /* Basis */
-searchLi([A|_], C, 1) :- C == A, !. /* FOund */
-searchLi([A|B], C, X) :- C \== A, searchLi(B, C, X).
-
-/*Del X dari List */
-delLi([], _, []) :- !. /* basis */
-delLi([A|B], X, B):- X == A, !. /* found */
-delLi([A|B], X, [A|C]) :- X \== A, delInv(B,X,C).
-
-/* DEAD */
-deadplayer :- player(A,B,C,D,E), B =:= 0, write('END GAME, YOU ARE DEAD! THE COUNTRY IS BEYOND SAVING!'), !.
-deadenemy  :- enemy(A,B,C,D,E), B=:=0, retract(enemy(A,B,C,D,E)), write('One enemy down. Innalillahi wa inna ilayhi raajiun'), !.
