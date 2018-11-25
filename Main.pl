@@ -92,13 +92,13 @@ printList([H|T]) :-
     
 
 /* Search List */
-searchLi([],_,0) :- !. /* Basis */
-searchLi([A|_], C, 1) :- C == A, !. /* Found */
-searchLi([A|B], C, X) :- C \== A, searchLi(B, C, X).
+searchList([],O) :- !, fail.
+searchList([A|B],A) :- !.
+searchList([A|B],C) :- searchList(B,C), !. 
 
 
 /*Konso List*/
-konso(Object,[L],[Y]) :- [Y] = [Object|L].
+konsoList(L,Object,L1) :- L1 = [Object|L], !.
 
 weaponInInv(A) :-
     findall(X, weaponInventory(X,_), L), listLength(L,A), !.
@@ -526,3 +526,34 @@ w :-
 
 e :- 
     addMoveCount, player(X,A,B,C,D), Y is X+1, retract(player(_,_,_,_,_)), asserta(player(Y,A,B,C,D)),checkDamageWin, !.
+
+
+
+
+/* --------- other action ----------------------------------- */
+take(Object) :- 
+    player(X,HP,Ar,O,Z), weaponLoot(X, Object, Y), O==Object, print('You already have '), print(Object), print('.'), inventoryCapacity(IC), miscInventory(L1,L2,L3), listLength(L3,LL), LL < IC, print('You take a full ammo of '), print(Object), print('.'), nl, konsoList(L3,O,L4), retract(miscInventory(_,_,_)), asserta(miscInventory(L1,L2,L4)), retract(weaponLoot(X,_,_)), !.
+take(Object) :-
+    player(X,HP,Ar,O,Z), weaponLoot(X, Object, Y), O==Object, print('You already have '), print(Object), print('. Your ammo of the weapon is full. You leave it alone.'), !.
+
+
+
+
+take(Object) :- 
+    player(X,_,_,_,_), weaponLoot(X, Object, Y), \+ (weaponInventory(Object,_)), retract(weapponLoot(X, Object,Y)), , inventoryCapacity(C), Z < C,
+    A is Z+1, asserta(inInv(A)), retract(inInv(Z)), asserta(weaponInventory(Object,Y)), print('You took the '),print(Object), !.
+take(Object) :- player(X,_,_,_,_), weaponLoot(X, Object, Y), weaponInventory(Object,Z),
+                B is Y+Z, asserta(weaponInventory(Object,B)), retract(weaponInventory(Object,Z)), print('You took the Ammo of '),
+                print(Object), print(', now the current Ammo is'), print(B),!.
+take(Object) :- inventoryCapacity(C), inv(Z), Z=:=C, print('Your inventory is full'),!. 
+
+take(Object) :- player(X,_,_,_,_), armorLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
+                konso(Object,[Ar],[Y]), asserta(miscInventory([Y],[Med],[Am])), retract(armorLoot(X,Object)),
+                retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),!.
+take(Object) :- player(X,_,_,_,_), medLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
+                konso(Object,[Med],[Y]), asserta(miscInventory([Ar],[Y],[Am])), retract(medLoot(X,Object)),
+                retract(miscInventory([Ar],[Med],[Am])), print('You took the '), print(Object),!.
+take(Object) :- player(X,_,_,_,_), ammoLoot(X, Object), inInv(Z), A is Z+1, miscInventory([Ar],[Med],[Am]), 
+                konso(Object,[Am],[Y]), asserta(miscInventory([Ar],[Med],[Y])), retract(armorLoot(X,Object)),
+                retract(miscInventory([Ar],[Med],[Am])),  print('You took the '), print(Object),!.          
+take(Object) :- print('Object not found.').
