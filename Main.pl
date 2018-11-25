@@ -219,7 +219,27 @@ startPosition :-
 start :-
 /* Bimo */
     asserta(programStart),
-    print('Welcome!'), nl,
+    nl, print('              888888b.    .d88888b. 88888888888 888       888        d8888 888      .d8888b.  888    d8P  8888888 '),
+nl, print('              888  "88b  d88P" "Y88b    888     888   o   888       d88888 888     d88P  Y88b 888   d8P     888   '),
+nl, print('              888  .88P  888     888    888     888  d8b  888      d88P888 888     Y88b.      888  d8P      888   '),
+nl, print('              8888888K.  888     888    888     888 d888b 888     d88P 888 888      "Y888b.   888d88K       888   '),
+nl, print('              888  "Y88b 888     888    888     888d88888b888    d88P  888 888         "Y88b. 8888888b      888   '),
+nl, print('              888    888 888     888    888     88888P Y88888   d88P   888 888           "888 888  Y88b     888   '),
+nl, print('              888   d88P Y88b. .d88P    888     8888P   Y8888  d8888888888 888     Y88b  d88P 888   Y88b    888   '),
+nl, print('              8888888P"    Y88888P      888     888P     Y888 d88P     888 88888888 "Y8888P"  888    Y88b 8888888 '),
+nl,
+nl,
+nl,
+
+nl, print('              $$$$$$$$  $$    $$  $$$$$$$   $$$$$$$$  $$$$$$$   $$$$$$  $$$$$$$$  $$    $$   $$$$$$   $$$$$$$$'),
+nl, print('              $$        $$    $$  $$    $$  $$        $$    $$    $$    $$        $$$   $$  $$    $$  $$'),
+nl, print('              $$         $$  $$   $$    $$  $$        $$    $$    $$    $$        $$$$  $$  $$        $$'),   
+nl, print('              $$$$$       $$$$    $$$$$$$   $$$$$     $$$$$$$     $$    $$$$$     $$ $$ $$  $$        $$$$$'),   
+nl, print('              $$         $$  $$   $$        $$        $$    $$    $$    $$        $$  $$$$  $$        $$'),
+nl, print('              $$        $$    $$  $$        $$        $$    $$    $$    $$        $$   $$$  $$    $$  $$'),      
+nl, print('              $$$$$$$$  $$    $$  $$        $$$$$$$$  $$    $$  $$$$$$  $$$$$$$$  $$    $$   $$$$$$   $$$$$$$$'),
+nl,
+nl,
     randomize, wipeData, startPosition,
     help,
     nl.
@@ -232,8 +252,14 @@ start :-
 /* --------- quit ----------------------------------------------------- */
 quit :-
     print('Farewell, it was a good game!'),
+    print('Botwalski Experience © KataBimoBebas'),nl,
+    print('Created by : '), nl,
+    print('Bimo Aditya '), nl,
+    print('Irena Irmalasari '), nl,
+    print('Nada Afra S '), nl,
+    print('Fitria Budi A '), nl,
     halt.
-/* 
+
 /* --------- save & load ------------------------------------------------ */
 /*Fitria*/
 
@@ -241,34 +267,27 @@ save(_) :-
     \+programStart, print('Program hasn\'t been started yet.'), nl, !.
 
 save(Filename) :-
-    open(Filename, write, Stream),
+    telling(Old), tell(Filename),
+    listing(player/5), listing(weaponInventory/2), listing(miscInventory/3),
+    listing(enemy/4), listing(weaponLoot/3), listing(armorLoot/2), listing(medLoot/2), listing(ammoLoot/2),
+    listing(moveCount/1), listing(deadzone/1), listing(border/1), listing(programStart/0),
+    told, tell(Old),
+    write('Your current game state has been saved to '), write(Filename), write(' succesfully.'), nl.
 
-    /*Initiate data to var*/
-    /*Player data*/
-    player(X, PlayerHP, PlayerArmor, EquipedWeapon, WeaponAmmo),
-    
-    write(Stream, X), write(Stream,'.'), nl(Stream),
-    write(Stream, PlayerHP), write(Stream,'.'), nl(Stream),
-    write(Stream, PlayerArmor), write(Stream,'.'), nl(Stream),
-    write(Stream, EquipedWeapon), write(Stream,'.'), nl(Stream),
-    write(Stream, WeaponAmmo), write(Stream,'.'), nl(Stream),
+loadGame(Filename) :-
+    quit,
+    seeing(Old),
+    see(Filename),
+    repeat,
+    read(Data),
+    process(Data),
+    seen,
+    print('You have succesfully load '), print(Filename), print('.'),
+    see(Old),
+    !.
 
-    /*Inventory data*/
-    forall(weaponInventory(Weapon, InvWeaponAmmo),(
-        write(Stream, Weapon), write(Stream,'.'), nl(Stream),
-        write(Stream, InvWeaponAmmo), write(Stream,'.'), nl(Stream)
-    )),
-
-    write('Your current game state has been saved to '), write(Filename), write(' succesfully.'), nl,
-    
-    close(Stream).
-
-    /*Only save player state and inventory data*/
-
-loadGame(_) :- !.
-
-
-
+process(end_of_file) :- !.
+process(Data) :- asserta(Data), fail.
 
 /* --------- info ----------------------------------------------------- */
 help :-
@@ -524,7 +543,7 @@ invStatus :-
     printWeaponInv,
     printList(Armor),
     printList(Med),
-    printList(Ammo),
+    print('ammo of '), printList(Ammo),
     print('\n\tand determination in your inventory.').
 
 /* --------- move ----------------------------------------------------- */
