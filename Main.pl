@@ -69,8 +69,19 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 /* Is coordinate X in deadzone */
 :- dynamic(deadzone/1).
 
+:- dynamic(programStart/0).
 
 /* Added Rule */
+
+playerDead :-
+    player(_,PlayerHP,_,_,_),
+    PlayerHP =< 0,
+    gameOver.
+
+gameOver :-
+    print('Too bad, you are dead!'), nl,
+    print('You could not take back Botwalski from the enemies!'), nl,
+    quit.
 
 printList(L) :-
     L == [], !.
@@ -157,7 +168,11 @@ startPosition :-
 
 start :-
 /* Bimo */
-    randomize, wipeData, startPosition.
+    asserta(programStart),
+    print('Welcome!'), nl,
+    randomize, wipeData, startPosition,
+    help,
+    nl.
 
 
 /* Bim, ntar buat inisialisasi jumlah weapon di inventori, yang weaponInInv */
@@ -165,7 +180,9 @@ start :-
 
 
 /* --------- quit ----------------------------------------------------- */
-quit :- !.
+quit :-
+    print('Farewell, it was a good game!'),
+    halt.
 /* 
 
 
@@ -174,8 +191,11 @@ quit :- !.
 
 /* --------- save & load ------------------------------------------------ */
 /*Fitria*/
-save(Filename) :-
 
+save(Filename) :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
+save(Filename) :-
     open(Filename, write, Stream),
 
     /*Initiate data to var*/
@@ -206,6 +226,9 @@ loadGame(_) :- !.
 
 
 /* --------- info ----------------------------------------------------- */
+help :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
 help :-
     nl, print('      ==================================================================='),
     nl, print('     |      Here are available commands for you to survive the game      |'),
@@ -348,6 +371,13 @@ look1(_,Found) :-
 
 /*Fitria*/
 look :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
+look :-
+    print('You have to start to look around!'),
+    nl, !.
+
+look :-
     worldWidth(WW),
     player(X,_,_,_,_),
     X0 is X-WW-1, X1 is X-WW, X2 is X-WW+1,
@@ -371,13 +401,35 @@ look :-
 
 /*Fitria*/
 map :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
+map :-
+    \+ programStart(_),
+    print('You have to start to see the map!'),
+    nl, !.
+
+map :-
     printMap(0).
 
 printMap(X) :-
     worldWidth(WW),
     MaX is WW*WW-1,
     X == MaX,
+    player(X,_,_,_,_), print('P'), !.
+
+printMap(X) :-
+    worldWidth(WW),
+    MaX is WW*WW-1,
+    X == MaX,
     deadzone(X), print('X'), !.
+
+printMap(X) :-
+    worldWidth(WW),
+    Xmod is X mod WW,
+    Xmod == 0,
+    player(X,_,_,_,_),
+    nl, print('P'), !,
+    N is X+1, printMap(N).
 
 printMap(X) :-
     worldWidth(WW),
@@ -401,6 +453,9 @@ printMap(X) :-
 
     
 /*Fitria*/
+status :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
 status :-
     /*player(Position, PlayerHP, PlayerArmor, Equiped weapon, Current ammo)*/
     player(_, PlayerHP, PlayerArmor, Weapon, Ammo),
@@ -436,7 +491,8 @@ invStatus :-
     printList(Med),
     printList(Ammo),
     print('\n\tand determination in your inventory.').
-    
+
+
 
     
 
