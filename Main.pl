@@ -71,6 +71,14 @@ We can convert X -> (X div WW, X mod WW) and (Y,Z) -> Y * WW + Z with Y,Z in 0 -
 
 /* Added Rule */
 
+printList(L) :-
+    L == [], !.
+    
+printList([H|T]) :-
+    print(H), print(', '), 
+    printList(T).
+    
+
 /* Search List */
 searchLi([],_,0) :- !. /* Basis */
 searchLi([A|_], C, 1) :- C == A, !. /* Found */
@@ -115,7 +123,7 @@ takeRandElmt(L1,L2,X) :-
 
 /* --------- init ----------------------------------------------------- */
 wipeData :-
-    retractall(player(_,_,_,_,_)), retractall(weaponInventory(_,_)), retractall(miscInventory(_,_,_)), retractall(enemy(_,_,_,_)), retractall(weaponLoot(_,_,_)), retractall(armorLoot(_,_)), retractall(medLoot(_,_)), retractall(ammoLoot(_,_)), retractall(weaponInInv(_)), retractall(moveCount(_)), retractall(deadzone(_)).
+    retractall(player(_,_,_,_,_)), retractall(weaponInventory(_,_)), retractall(miscInventory(_,_,_)), retractall(enemy(_,_,_,_)), retractall(weaponLoot(_,_,_)), retractall(armorLoot(_,_)), retractall(medLoot(_,_)), retractall(ammoLoot(_,_)), retractall(moveCount(_)), retractall(deadzone(_)).
 
 addDeadzone(K) :-
     worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(deadzone(A1)), twoToOneDim(K1,X,A2), asserta(deadzone(A2)), twoToOneDim(X,K,A3), asserta(deadzone(A3)), twoToOneDim(X,K1,A4), asserta(deadzone(A4)))).
@@ -191,7 +199,7 @@ save(Filename) :-
 
     /*Only save player state and inventory data*/
 
-loadGame(Filename) :-
+loadGame(Filename) :- !.
 
 
 
@@ -241,7 +249,7 @@ printLook1(X) :-
     deadzone(X), print('X'), !.
 printLook1(X) :-
     print('_').
-
+    
 printLook(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+WW+1,
@@ -262,7 +270,7 @@ printLook(X) :-
 printLook(X) :-
     printLook1(X), print(' '),
     N is X+1, printLook(N).
-
+    
 printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW-1,
@@ -307,7 +315,7 @@ printPosition(X) :-
     X0 is P+WW-1,
     X == X0,
     print(' at your southeast, '),!.
-
+    
 look1(X,Found) :-
     enemy(X,_,_,_), Found = 1,nl,
     print('an enemy'),
@@ -334,7 +342,7 @@ look1(X,Found) :-
     printPosition(X),!.
 look1(X,Found) :-
     Found = 0.
-
+    
 /*Fitria*/
 look :-
     worldWidth(WW),
@@ -351,7 +359,7 @@ look :-
     Found6 == 0, Found7 == 0, Found8 == 0,
     print('nothing on the ground.'), nl,
     printLook(X0), !.
-
+    
 look :-
     worldWidth(WW),
     player(X,_,_,_,_),
@@ -364,17 +372,17 @@ look :-
     look1(X6,Found6), look1(X7,Found7), look1(X8,Found8),
     nl, print('on the ground.'), nl,
     printLook(X0).
-
+    
 /*Fitria*/
 map :-
-    printMap(0);
-
+    printMap(0).
+    
 printMap(X) :-
     worldWidth(WW),
     MaX is WW*WW-1,
-    X == Max,
-    deadzone(X), print('X').
-
+    X == MaX,
+    deadzone(X), print('X'), !.
+    
 printMap(X) :-
     worldWidth(WW),
     Xmod is X mod WW,
@@ -382,19 +390,19 @@ printMap(X) :-
     deadzone(X),
     nl, print('X'), !,
     N is X+1, printMap(N).
-
+    
 printMap(X) :-
     player(X,_,_,_,_), print('P'), !,
     N is X+1, printMap(N).
-
+    
 printMap(X) :-
     deadzone(X), print('X'), !,
     N is X+1, printMap(N).
-
+    
 printMap(X) :-
-    print("-"),
+    print('-'),
     N is X+1, printMap(N).
-
+    
 /*Fitria*/
 status :-
     /*player(Position, PlayerHP, PlayerArmor, Equiped weapon, Current ammo)*/
@@ -402,16 +410,16 @@ status :-
     print('Health   : '), print(PlayerHP), nl,
     print('Armor    : '), print(PlayerArmor), nl,
     print('Weapon   : '), print(Weapon), nl,
-    InvStatus.
-
+    invStatus.
+    
 printWeaponInv :-
     \+ weaponInventory(_,_), !.
 printWeaponInv :-
     forall(weaponInventory(Weapon,WeaponAmmo), (
         print(Weapon), print('(Ammo: '), print(WeaponAmmo), print(')'), print(', ')
     )), !.
-
-InvStatus :-
+    
+invStatus :-
     /* weaponInventory(Weapon Name,Ammo), if we take an acquired weapon, just take the ammo */
     /* weaponInventory(Weapon, WAmmo),*/
     /* miscInventory([Armor Name], [Med Name], [Ammo Name]) */
@@ -421,8 +429,8 @@ InvStatus :-
     Med == [],
     Ammo == [],
     print('Your inventory is empty!'), !.
-
-InvStatus :-
+    
+invStatus :-
     miscInventory(Armor, Med, Ammo),
     print('You have:'), nl,
     printWeaponInv,
@@ -430,13 +438,7 @@ InvStatus :-
     printList(Med),
     printList(Ammo),
     nl, print('in your inventory.').
-
-printList(L) :-
-    L == [], !.
-
-printList([H|T]) :-
-    print(H), print(', '), 
-    printList(T).
+    
 
 /* --------- move ----------------------------------------------------- */
 n :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
