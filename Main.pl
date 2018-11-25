@@ -129,7 +129,7 @@ addDeadzone(K) :-
     worldWidth(WW), WA is WW-1, K1 is WA-K, forall(between(0,WA,X), (twoToOneDim(K,X,A1),asserta(deadzone(A1)), twoToOneDim(K1,X,A2), asserta(deadzone(A2)), twoToOneDim(X,K,A3), asserta(deadzone(A3)), twoToOneDim(X,K1,A4), asserta(deadzone(A4)))).
 
 startPlayer(L,L1) :-
-     takeRandElmt(L,L1,P), playerMaxHP(MH), playerMaxArmor(MA), asserta(player(P,MH,MA,none,0)).
+     takeRandElmt(L,L1,P), playerMaxHP(MH), playerMaxArmor(MA), asserta(player(P,MH,MA,none,0)), asserta(miscInventory([],[],[])).
 
 startEnemy(L,0,L1) :- L1 = L, !.
 startEnemy(L,A,L1) :- 
@@ -199,7 +199,7 @@ save(Filename) :-
 
     /*Only save player state and inventory data*/
 
-loadGame(Filename) :- !.
+loadGame(_) :- !.
 
 
 
@@ -238,18 +238,20 @@ help :-
 printLook1(X) :-
     enemy(X,_,_,_), print('E'), !.
 printLook1(X) :-
+    medLoot(X,_), print('M'), !.
+printLook1(X) :-
     weaponLoot(X,_,_), print('W'), !.
 printLook1(X) :-
     armorLoot(X,_), print('A'), !.
 printLook1(X) :-
-    medLoot(X,_), print('M'), !.
-printLook1(X) :-
     ammoLoot(X,_), print('O'), !.
 printLook1(X) :-
-    deadzone(X), print('X'), !.
+    player(X,_,_,_,_), print('P'), !.
 printLook1(X) :-
+    deadzone(X), print('X'), !.
+printLook1(_) :-
     print('_').
-    
+
 printLook(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+WW+1,
@@ -260,7 +262,7 @@ printLook(X) :-
     X0 is P+1,
     X == X0,
     printLook1(X), nl,
-    N is X+WW-1, printLook(N),!.
+    N is P+WW-1, printLook(N),!.
 printLook(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW+1,
@@ -270,55 +272,59 @@ printLook(X) :-
 printLook(X) :-
     printLook1(X), print(' '),
     N is X+1, printLook(N).
-    
+
 printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW-1,
     X == X0,
-    print(' at your northwest, '),!.
+    print(' at your northwest '),!.
 printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW,
     X == X0,
-    print(' at your north, '),!.
+    print(' at your north '),!.
 printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P-WW+1,
     X == X0,
-    print(' at your northeast, '),!.
+    print(' at your northeast '),!.
 printPosition(X) :-
     player(P,_,_,_,_),
     X0 is P-1,
     X == X0,
-    print(' at your west, '),!.
+    print(' at your west '),!.
 printPosition(X) :-
     player(P,_,_,_,_),
     X == P,
-    print(' at your position, '),!.
+    print(' at your position '),!.
 printPosition(X) :-
     player(P,_,_,_,_),
     X0 is P+1,
     X == X0,
-    print(' at your east, '),!.
+    print(' at your east '),!.
 printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+WW-1,
     X == X0,
-    print(' at your southwest, '),!.
+    print(' at your southwest '),!.
 printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
     X0 is P+WW,
     X == X0,
-    print(' at your south, '),!.
+    print(' at your south '),!.
 printPosition(X) :-
     worldWidth(WW), player(P,_,_,_,_),
-    X0 is P+WW-1,
+    X0 is P+WW+1,
     X == X0,
-    print(' at your southeast, '),!.
-    
+    print(' at your southeast '),!.
+
 look1(X,Found) :-
     enemy(X,_,_,_), Found = 1,nl,
     print('an enemy'),
+    printPosition(X),!.
+look1(X,Found) :-
+    medLoot(X,M), Found = 1,nl,
+    print('a medicine: '), print(M),
     printPosition(X),!.
 look1(X,Found) :-
     weaponLoot(X,W,_), Found = 1,nl,
@@ -326,11 +332,7 @@ look1(X,Found) :-
     printPosition(X),!.
 look1(X,Found) :-
     armorLoot(X,A), Found = 1,nl,
-    print('an armor: '), print('A'),
-    printPosition(X),!.
-look1(X,Found) :-
-    medLoot(X,M), Found = 1,nl,
-    print('a medicine: '), print(M),
+    print('an armor: '), print(A),
     printPosition(X),!.
 look1(X,Found) :-
     ammoLoot(X,O), Found = 1,nl,
@@ -340,9 +342,9 @@ look1(X,Found) :-
     deadzone(X), Found = 1,nl,
     print('a deadzone '),
     printPosition(X),!.
-look1(X,Found) :-
+look1(_,Found) :-
     Found = 0.
-    
+
 /*Fitria*/
 look :-
     worldWidth(WW),
@@ -359,30 +361,23 @@ look :-
     Found6 == 0, Found7 == 0, Found8 == 0,
     print('nothing on the ground.'), nl,
     printLook(X0), !.
-    
+
 look :-
     worldWidth(WW),
     player(X,_,_,_,_),
-    X0 is X-WW-1, X1 is X-WW, X2 is X-WW+1,
-    X3 is X-1, X4 is X, X5 is X+1,
-    X6 is X+WW-1, X7 is X+WW, X8 is X+WW+1,
-    print('You are now in Botwalski. You see '),
-    look1(X0,Found0), look1(X1,Found1), look1(X2,Found2),
-    look1(X3,Found3), look1(X4,Found4), look1(X5,Found5),
-    look1(X6,Found6), look1(X7,Found7), look1(X8,Found8),
-    nl, print('on the ground.'), nl,
-    printLook(X0).
-    
+    X0 is X-WW-1,
+    nl, printLook(X0).
+
 /*Fitria*/
 map :-
     printMap(0).
-    
+
 printMap(X) :-
     worldWidth(WW),
     MaX is WW*WW-1,
     X == MaX,
     deadzone(X), print('X'), !.
-    
+
 printMap(X) :-
     worldWidth(WW),
     Xmod is X mod WW,
@@ -390,26 +385,28 @@ printMap(X) :-
     deadzone(X),
     nl, print('X'), !,
     N is X+1, printMap(N).
-    
+
 printMap(X) :-
     player(X,_,_,_,_), print('P'), !,
     N is X+1, printMap(N).
-    
+
 printMap(X) :-
     deadzone(X), print('X'), !,
     N is X+1, printMap(N).
-    
+
 printMap(X) :-
     print('-'),
     N is X+1, printMap(N).
+
     
 /*Fitria*/
 status :-
     /*player(Position, PlayerHP, PlayerArmor, Equiped weapon, Current ammo)*/
-    player(X, PlayerHP, PlayerArmor, Weapon, Ammo),
+    player(_, PlayerHP, PlayerArmor, Weapon, Ammo),
     print('Health   : '), print(PlayerHP), nl,
     print('Armor    : '), print(PlayerArmor), nl,
     print('Weapon   : '), print(Weapon), nl,
+    print('Ammo     : '), print(Ammo), nl,
     invStatus.
     
 printWeaponInv :-
@@ -432,17 +429,19 @@ invStatus :-
     
 invStatus :-
     miscInventory(Armor, Med, Ammo),
-    print('You have:'), nl,
+    print('You have:\n\t'),
     printWeaponInv,
     printList(Armor),
     printList(Med),
     printList(Ammo),
-    nl, print('in your inventory.').
+    print('\n\tand determination in your inventory.').
+    
+
     
 
 /* --------- move ----------------------------------------------------- */
-n :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), S is 0, asserta(Player(X,S,Ar,Wp,Am)),
-    retract(Player(X,HP,Ar,Wp,Am)),!.
+n :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW , deadzone(Y), S is 0, asserta(player(X,S,Ar,Wp,Am)),
+    retract(player(X,HP,Ar,Wp,Am)),!.
 n :- player(X,HP,Ar,Wp,Am), worldWidth(WW), Y is X-WW, asserta(Player(Y,HP,Ar,Wp,Am)), retract(Player(X,HP,Ar,Wp,Am)).
 
 
