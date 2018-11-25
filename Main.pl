@@ -139,16 +139,17 @@ takeRandElmt(L1,L2,X) :-
     listLength(L1,A), random(0,A,B), takeNthElmt(L1,B,L2,X), !.
 
 /* terrain */
-terrain(A,B,C) : twoToOneDim(A,B,X), border(X), print('to the '), print(C), print(' is the edge of island'), nl, !.
-terrain(A,B,C) : twoToOneDim(A,B,X), deadzone(X), print('to the '), print(C), print(' is a deadzone'), nl, !.
-terrain(A,B,C) : worldWidth(WW), Z is WW//2, A < Z, B < Z, print('to the '), print(C), print(' is a swamp'), nl, !.
-terrain(A,B,C) : worldWidth(WW), Z is WW//2, A < Z, B >= Z, print('to the '), print(C), print(' is a forest'), nl, !.
-terrain(A,B,C) : worldWidth(WW), Z is WW//2, A >= Z, B < Z, print('to the '), print(C), print(' is an open field'), nl, !.
-terrain(A,B,C) : worldWidth(WW), Z is WW//2, A >= Z, B >= Z, print('to the '), print(C), print(' is a dessert' ), nl, !.
+terrain(A,B,C) :- twoToOneDim(A,B,X), border(X), print('to the '), print(C), print(' is the edge of island'), !.
+terrain(A,B,C) :- twoToOneDim(A,B,X), deadzone(X), print('to the '), print(C), print(' is a deadzone'), !.
+terrain(A,B,C) :- worldWidth(WW), Z is WW//2, A < Z, B < Z, print('to the '), print(C), print(' is a swamp'), !.
+terrain(A,B,C) :- worldWidth(WW), Z is WW//2, A < Z, B >= Z, print('to the '), print(C), print(' is a forest'), !.
+terrain(A,B,C) :- worldWidth(WW), Z is WW//2, A >= Z, B < Z, print('to the '), print(C), print(' is an open field'), !.
+terrain(A,B,C) :- worldWidth(WW), Z is WW//2, A >= Z, B >= Z, print('to the '), print(C), print(' is a dessert' ), !.
 
-terrainAll(X) : 
-    oneToTwoDim(X,A,B), N is A-1, S is A+1, W is B-1, E is B+1, print('you're in Boltswaski, '), terrain(N,B,north), print(', ), terrain(S,B,south), print(', ),
+terrainAll(X) :- 
+    oneToTwoDim(X,A,B), N is A-1, S is A+1, W is B-1, E is B+1, print('You\'re in Boltswaski, '), terrain(N,B,north), print(', '), terrain(S,B,south), print(', '),
     terrain(A,W,west), print(', '), terrain(A,E,east), print('.'),nl.
+
 
 deadzoneDamagePlayer :- 
     player(X,A,B,C,D), deadzone(X), deadzoneDamage(DD), A1 is A-DD, retract(player(_,_,_,_,_)), asserta(player(X,A1,B,C,D)), fail.
