@@ -275,7 +275,7 @@ save(Filename) :-
     write('Your current game state has been saved to '), write(Filename), write(' succesfully.'), nl.
 
 loadGame(Filename) :-
-    quit,
+    wipeData,
     seeing(Old),
     see(Filename),
     repeat,
