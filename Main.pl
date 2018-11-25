@@ -147,7 +147,7 @@ deadzoneDamagePlayer :- !.
 deadzoneDamageEnemy :-
     forall(enemy(X,A,B,C), (deadzone(X), deadzoneDamage(DD), A1 is A-DD, retract(enemy(X,A,B,C)), asserta(enemy(X,A1,B,C)))), fail.
 deadzoneDamageEnemy :- 
-    forall(enemy(X,A,B,C), (A =< 0, retract(enemy(X,A,B,C)))), !.
+    forall(enemy(X,A,B,C), (A =< 0, retract(enemy(X,A,B,C), asserta(weaponLoot(X,B,C))))), !.
 deadzoneDamageEnemy :- !.
 
 checkWinCon  :- \+player(_,_,_,_,_), print('You are dead.'), nl, retract(programStart), !.
@@ -194,7 +194,7 @@ startAmmo(L,[A|B],L1) :-
     takeRandElmt(L,L2,X), asserta(ammoLoot(X,A)), startAmmo(L2,B,L1), !.
 
 startPosition :-
-    addBorder(0), addDeadzone(1), worldWidth(WW), WB is WW*WW-1, findall(X, (between(0,WB,X), \+deadzone(X)), L), startPlayer(L,L1), enemyStartNumber(ES), startEnemy(L1,ES,L2), startWeaponList(WL), startWeapon(L2,WL,L3), startArmorList(AL), startArmor(L3,AL,L4), startMedList(ML), startMed(L4,ML,L5), startAmmoList(AML), startAmmo(L5,AML,_).
+    addBorder(0), addDeadzone(1), worldWidth(WW), WB is WW*WW-1, findall(X, (between(0,WB,X), (\+deadzone(X)), \+border(X)), L), startPlayer(L,L1), enemyStartNumber(ES), startEnemy(L1,ES,L2), startWeaponList(WL), startWeapon(L2,WL,L3), startArmorList(AL), startArmor(L3,AL,L4), startMedList(ML), startMed(L4,ML,L5), startAmmoList(AML), startAmmo(L5,AML,_).
 
 start :-
 /* Bimo */
@@ -585,6 +585,9 @@ take(_) :-
     print('There is no such object. You leave the ground alone.'), nl, !.
 
 
+use(_) :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
 use(Object) :-
     weaponInventory(Object,Y), player(A,B,C,none,_), !, print('You equip the '), print(Object), print('.'), nl, retract(player(_,_,_,_,_)), asserta(player(A,B,C,Object,Y)), retract(weaponInventory(Object,_)), !.
 
@@ -603,3 +606,21 @@ use(Object) :-
 use(Object) :-
     print('You failed to use that '), print(Object), print(' whatsoever.'), nl, !.
 
+
+attack :-
+    \+programStart, print('Program hasn\'t been started yet.'), nl, !.
+
+attack :-
+    addMoveCount, player(X,_,_,_,_), \+enemy(X,_,_,_), print('There is no enemy around you.'), nl, checkDamageWin, !.
+
+attack :-
+    player(_,_,_,none,_), print('You equipped no weapon.'), nl, checkDamageWin, !.
+
+attack :-
+    player(_,_,_,_,0), print('You have no ammo.'), nl, checkDamageWin, !.
+
+attack :-
+    player(X,A,B,C,D), enemy(X,_,_,_), print('You take your shot.'), weaponStat(C,_,P,_), \+randomProb(P), !, print('You missed.'), nl, retract(player(_,_,_,_,_)), D1 is D-1, asserta(player(X,A,B,C,D1)), checkDamageWin, !.
+
+attack :-
+    player(X,A,B,C,D), enemy(X,E,F,G), print(' The shot hits the non-moving enemy. It looks painful.'), nl, retract(player(X,A,B,C,D)), D1 is D-1, asserta(player(X,A,B,C,D1)), weaponStat(C,DG,_,_), E1 is E-DG, retract(enemy(X,_,_,_)), asserta(enemy(X,E1,F,G)), !.
